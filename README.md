@@ -40,14 +40,19 @@ Pages و...) قابل انتشار است.
 ## انتشار رایگان با GitHub Pages
 
 یک workflow آماده در `.github/workflows/deploy.yml` وجود دارد که با هر
-push به شاخه‌ی `main` اپ را می‌سازد و منتشر می‌کند:
+push به شاخه‌ی `claude/phone-memory-web-app-47tocj` (شاخه‌ی فعلی این پروژه)
+اپ را می‌سازد و منتشر می‌کند:
 
 1. در تنظیمات ریپازیتوری روی گیت‌هاب: **Settings → Pages → Source** را روی
-   **GitHub Actions** بگذارید.
-2. تغییرات را به شاخه‌ی `main` مرج/پوش کنید (یا از تب Actions، workflow را
-   دستی اجرا کنید — «Run workflow»).
+   **GitHub Actions** بگذارید (این یک قدم دستی و یک‌بار مصرف است — از راه
+   API قابل انجام نیست).
+2. بعد از آن، یا یک push جدید به همین شاخه بزنید، یا از تب **Actions** روی
+   workflow «Deploy to GitHub Pages» بروید و **Run workflow** را بزنید.
 3. بعد از پایان اجرا، آدرس اپ زیر همان تب Pages در تنظیمات نمایش داده
    می‌شود (چیزی شبیه `https://<username>.github.io/<repo-name>/`).
+
+اگر بعداً این شاخه را در `main` ادغام کردید، نام شاخه را در
+`.github/workflows/deploy.yml` هم به‌روزرسانی کنید.
 
 ## داده‌ها و پشتیبان‌گیری
 
