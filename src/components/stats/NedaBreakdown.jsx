@@ -23,7 +23,7 @@ export default function NedaBreakdown({ nedaBreakdown, nedaGrandTotal, nedaChart
       {nedaBreakdown.map((y) => (
         <div key={y.year} style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 4px', marginBottom: 6 }}>
-            <div style={{ ...displayStyle, fontSize: 17, color: COLORS.cover }}>سال {y.year}</div>
+            <div style={{ ...displayStyle, fontSize: 17, color: COLORS.cover }}>سال {toFaDigits(y.year)}</div>
             <div className="tabular" style={{ fontSize: 13, fontWeight: 700, color: COLORS.expense }}>{fmt(y.yearTotal)}</div>
           </div>
           {y.months.map((mo) => (
