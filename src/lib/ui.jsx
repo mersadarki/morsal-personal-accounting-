@@ -1,4 +1,5 @@
 import { COLORS } from './constants';
+import { describeAmount } from './format';
 
 export const fontStyle = { fontFamily: "'Vazirmatn', sans-serif" };
 export const displayStyle = { fontFamily: "'Lalezar', cursive" };
@@ -16,4 +17,12 @@ export const nedaBadge = { fontSize: 10, background: COLORS.expenseBg, color: CO
 
 export function FieldLabel({ children }) {
   return <div style={{ fontSize: 11, color: COLORS.inkLight, marginBottom: 4 }}>{children}</div>;
+}
+
+// Live confirmation shown under an amount field so it's never ambiguous
+// what a plain number vs an "X/Y" shorthand entry actually recorded.
+export function AmountPreview({ value }) {
+  const text = describeAmount(value);
+  if (!text) return null;
+  return <div style={{ fontSize: 11, color: COLORS.brassDark, marginTop: 3 }}>= {text}</div>;
 }

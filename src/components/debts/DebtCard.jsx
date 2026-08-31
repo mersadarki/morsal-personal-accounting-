@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Trash2, Plus, Pencil, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
 import { fmt, parseMoneyShorthand } from '../../lib/format';
-import { inputStyle, iconBtn, secondaryBtn } from '../../lib/ui.jsx';
+import { inputStyle, iconBtn, secondaryBtn, AmountPreview } from '../../lib/ui.jsx';
 
 function EntryRow({ entry, debtId, onEditEntry, onDeleteEntry }) {
   const [editing, setEditing] = useState(false);
@@ -27,7 +27,10 @@ function EntryRow({ entry, debtId, onEditEntry, onDeleteEntry }) {
   if (editing) {
     return (
       <form onSubmit={save} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '7px 12px', borderTop: `1px solid ${COLORS.line}`, flexWrap: 'wrap' }}>
-        <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="مبلغ (+/- ، مثلاً ۵/۸۰۰)" style={{ ...inputStyle, flex: '1 1 100px', fontSize: 12.5, padding: '6px 8px' }} />
+        <div style={{ flex: '1 1 100px' }}>
+          <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="مبلغ (+/- ، مثلاً ۵/۸۰۰)" style={{ ...inputStyle, width: '100%', fontSize: 12.5, padding: '6px 8px' }} />
+          <AmountPreview value={amount} />
+        </div>
         <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="یادداشت..." style={{ ...inputStyle, flex: '2 1 120px', fontSize: 12.5, padding: '6px 8px' }} />
         <button type="submit" style={iconBtn(COLORS.income)}><Check size={13} /></button>
         <button type="button" onClick={() => setEditing(false)} style={iconBtn(COLORS.inkLight)}><X size={13} /></button>
@@ -100,11 +103,13 @@ export default function DebtCard({ debt, onAddEntries, onEditEntry, onDeleteEntr
             <div style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
               <div style={{ flex: '1 1 100px' }}>
                 <div style={{ fontSize: 10.5, color: COLORS.income, marginBottom: 3, fontWeight: 700 }}>+ بدهی جدید</div>
-                <input inputMode="decimal" value={plus} onChange={(e) => setPlus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={inputStyle} />
+                <input inputMode="decimal" value={plus} onChange={(e) => setPlus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={{ ...inputStyle, width: '100%' }} />
+                <AmountPreview value={plus} />
               </div>
               <div style={{ flex: '1 1 100px' }}>
                 <div style={{ fontSize: 10.5, color: COLORS.expense, marginBottom: 3, fontWeight: 700 }}>− دریافتی</div>
-                <input inputMode="decimal" value={minus} onChange={(e) => setMinus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={inputStyle} />
+                <input inputMode="decimal" value={minus} onChange={(e) => setMinus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={{ ...inputStyle, width: '100%' }} />
+                <AmountPreview value={minus} />
               </div>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>

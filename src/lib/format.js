@@ -78,3 +78,20 @@ export function parseMoneyShorthand(str) {
   }
   return neg ? -val : val;
 }
+
+// Live confirmation of what an amount field will actually record, spelled
+// out in full toman regardless of whether it was typed plain ("8800") or
+// as X/Y shorthand ("8/800") — so it's never ambiguous which one you used.
+// Returns '' for empty/invalid input.
+export function describeAmount(str) {
+  const n = parseMoneyShorthand(str);
+  if (isNaN(n) || n === 0) return '';
+  const abs = Math.round(Math.abs(n));
+  const million = Math.floor(abs / 1000);
+  const thousand = abs % 1000;
+  const words = [];
+  if (million > 0) words.push(`${toFaDigits(million)} میلیون`);
+  if (thousand > 0) words.push(`${toFaDigits(thousand)} هزار`);
+  const fullToman = (Math.abs(n) * 1000).toLocaleString('en-US').replace(/,/g, '٫');
+  return `${n < 0 ? '−' : ''}${toFaDigits(fullToman)} تومان (${words.join(' و ')} تومان)`;
+}
