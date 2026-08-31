@@ -1,11 +1,56 @@
 import { useState } from 'react';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Pencil, Check, X } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
-import { fmt, toEnglishDigits } from '../../lib/format';
+import { fmt, parseMoneyShorthand } from '../../lib/format';
 import { inputStyle, iconBtn, secondaryBtn } from '../../lib/ui.jsx';
 
-export default function DebtCard({ debt, onAddEntry, onDeleteEntry, onDeletePerson }) {
+function EntryRow({ entry, debtId, onEditEntry, onDeleteEntry }) {
+  const [editing, setEditing] = useState(false);
   const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
+  const [error, setError] = useState('');
+
+  function startEdit() {
+    setAmount(String(entry.delta));
+    setNote(entry.note || '');
+    setError('');
+    setEditing(true);
+  }
+  function save(e) {
+    e.preventDefault();
+    const n = parseMoneyShorthand(amount);
+    if (isNaN(n) || n === 0) { setError('مبلغ را درست وارد کنید.'); return; }
+    onEditEntry(debtId, entry.id, n, note.trim());
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <form onSubmit={save} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '7px 12px', borderTop: `1px solid ${COLORS.line}`, flexWrap: 'wrap' }}>
+        <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="مبلغ (+/- ، مثلاً ۵/۸۰۰)" style={{ ...inputStyle, flex: '1 1 100px', fontSize: 12.5, padding: '6px 8px' }} />
+        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="یادداشت..." style={{ ...inputStyle, flex: '2 1 120px', fontSize: 12.5, padding: '6px 8px' }} />
+        <button type="submit" style={iconBtn(COLORS.income)}><Check size={13} /></button>
+        <button type="button" onClick={() => setEditing(false)} style={iconBtn(COLORS.inkLight)}><X size={13} /></button>
+        {error && <div style={{ color: COLORS.expense, fontSize: 11, flexBasis: '100%' }}>{error}</div>}
+      </form>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderTop: `1px solid ${COLORS.line}` }}>
+      <div style={{ flex: 1, fontSize: 12.5, color: COLORS.inkLight }}>{entry.note || '—'}</div>
+      <div className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: entry.delta >= 0 ? COLORS.income : COLORS.expense }}>
+        {entry.delta >= 0 ? '+' : ''}{fmt(entry.delta)}
+      </div>
+      <button onClick={startEdit} style={iconBtn(COLORS.brassDark)}><Pencil size={12} /></button>
+      <button onClick={() => onDeleteEntry(debtId, entry.id)} style={iconBtn(COLORS.expense)}><Trash2 size={12} /></button>
+    </div>
+  );
+}
+
+export default function DebtCard({ debt, onAddEntries, onEditEntry, onDeleteEntry, onDeletePerson }) {
+  const [plus, setPlus] = useState('');
+  const [minus, setMinus] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState('');
 
@@ -13,10 +58,17 @@ export default function DebtCard({ debt, onAddEntry, onDeleteEntry, onDeletePers
 
   function submit(e) {
     e.preventDefault();
-    const n = parseFloat(toEnglishDigits(amount));
-    if (isNaN(n) || n === 0) { setError('مبلغ را وارد کنید (مثبت یا منفی).'); return; }
-    onAddEntry(debt.id, n, note.trim());
-    setAmount(''); setNote(''); setError('');
+    const p = plus.trim() ? parseMoneyShorthand(plus) : null;
+    const m = minus.trim() ? parseMoneyShorthand(minus) : null;
+    if ((p == null || isNaN(p) || p <= 0) && (m == null || isNaN(m) || m <= 0)) {
+      setError('حداقل یکی از دو مبلغ (بدهی جدید یا دریافتی) را وارد کنید.');
+      return;
+    }
+    const items = [];
+    if (p != null && !isNaN(p) && p > 0) items.push({ delta: p, note: note.trim() });
+    if (m != null && !isNaN(m) && m > 0) items.push({ delta: -m, note: note.trim() });
+    onAddEntries(debt.id, items);
+    setPlus(''); setMinus(''); setNote(''); setError('');
   }
 
   return (
@@ -24,6 +76,7 @@ export default function DebtCard({ debt, onAddEntry, onDeleteEntry, onDeletePers
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: COLORS.paperDark }}>
         <div style={{ fontWeight: 700, fontSize: 14 }}>{debt.person}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontSize: 11, color: COLORS.inkLight }}>مانده:</div>
           <div className="tabular" style={{ fontWeight: 800, fontSize: 14, color: total >= 0 ? COLORS.income : COLORS.expense }}>{fmt(total)}</div>
           <button onClick={() => onDeletePerson(debt.id)} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></button>
         </div>
@@ -31,20 +84,25 @@ export default function DebtCard({ debt, onAddEntry, onDeleteEntry, onDeletePers
       {debt.entries.length > 0 && (
         <div>
           {debt.entries.map((en) => (
-            <div key={en.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderTop: `1px solid ${COLORS.line}` }}>
-              <div style={{ flex: 1, fontSize: 12.5, color: COLORS.inkLight }}>{en.note || '—'}</div>
-              <div className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: en.delta >= 0 ? COLORS.income : COLORS.expense }}>
-                {en.delta >= 0 ? '+' : ''}{fmt(en.delta)}
-              </div>
-              <button onClick={() => onDeleteEntry(debt.id, en.id)} style={iconBtn(COLORS.inkLight)}><Trash2 size={12} /></button>
-            </div>
+            <EntryRow key={en.id} entry={en} debtId={debt.id} onEditEntry={onEditEntry} onDeleteEntry={onDeleteEntry} />
           ))}
         </div>
       )}
-      <form onSubmit={submit} style={{ display: 'flex', gap: 6, padding: 10, borderTop: `1px solid ${COLORS.line}`, flexWrap: 'wrap' }}>
-        <input inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="مبلغ (+/-)" style={{ ...inputStyle, flex: '1 1 90px' }} />
-        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="یادداشت..." style={{ ...inputStyle, flex: '2 1 140px' }} />
-        <button type="submit" style={{ ...secondaryBtn, flexShrink: 0 }}><Plus size={14} /> افزودن</button>
+      <form onSubmit={submit} style={{ padding: 10, borderTop: `1px solid ${COLORS.line}` }}>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 100px' }}>
+            <div style={{ fontSize: 10.5, color: COLORS.income, marginBottom: 3, fontWeight: 700 }}>+ بدهی جدید</div>
+            <input inputMode="decimal" value={plus} onChange={(e) => setPlus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={inputStyle} />
+          </div>
+          <div style={{ flex: '1 1 100px' }}>
+            <div style={{ fontSize: 10.5, color: COLORS.expense, marginBottom: 3, fontWeight: 700 }}>− دریافتی</div>
+            <input inputMode="decimal" value={minus} onChange={(e) => setMinus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={inputStyle} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="یادداشت..." style={{ ...inputStyle, flex: 1 }} />
+          <button type="submit" style={{ ...secondaryBtn, flexShrink: 0 }}><Plus size={14} /> ثبت</button>
+        </div>
       </form>
       {error && <div style={{ color: COLORS.expense, fontSize: 12, padding: '0 12px 10px' }}>{error}</div>}
     </div>

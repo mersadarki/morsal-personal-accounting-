@@ -5,7 +5,7 @@ import { fmt } from '../../lib/format';
 import { inputStyle, primaryBtn } from '../../lib/ui.jsx';
 import DebtCard from './DebtCard';
 
-export default function DebtsView({ debts, onAddPerson, onAddEntry, onDeleteEntry, onDeletePerson }) {
+export default function DebtsView({ debts, onAddPerson, onAddEntries, onEditEntry, onDeleteEntry, onDeletePerson }) {
   const [name, setName] = useState('');
 
   function submit(e) {
@@ -34,7 +34,7 @@ export default function DebtsView({ debts, onAddPerson, onAddEntry, onDeleteEntr
         <div style={{ padding: 30, textAlign: 'center', color: COLORS.inkLight, fontSize: 13, background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12 }}>هنوز شخصی ثبت نشده.</div>
       )}
       {debts.map((d) => (
-        <DebtCard key={d.id} debt={d} onAddEntry={onAddEntry} onDeleteEntry={onDeleteEntry} onDeletePerson={onDeletePerson} />
+        <DebtCard key={d.id} debt={d} onAddEntries={onAddEntries} onEditEntry={onEditEntry} onDeleteEntry={onDeleteEntry} onDeletePerson={onDeletePerson} />
       ))}
     </div>
   );

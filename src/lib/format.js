@@ -57,3 +57,24 @@ export function isExcludedExpenseTitle(title) {
 }
 
 export function jalaliToMonthLabel({ jy, jm }) { return `${MONTHS[jm - 1]} ${toFaDigits(jy)}`; }
+
+// Debt amounts are often several million toman; "۵/۸۰۰" is shorthand for
+// 5 million + 800 thousand toman = 5800 in the app's hezar-toman unit
+// (same as typing "5800" directly) — easier to type accurately than
+// counting zeros. Falls back to a plain number when there's no "/".
+export function parseMoneyShorthand(str) {
+  let s = toEnglishDigits(String(str || '').trim());
+  if (!s) return NaN;
+  let neg = false;
+  if (s.indexOf('-') === 0) { neg = true; s = s.slice(1); }
+  let val;
+  if (s.indexOf('/') > -1) {
+    const parts = s.split('/');
+    const mil = parseFloat(parts[0]) || 0;
+    const thousand = parseFloat(parts[1]) || 0;
+    val = mil * 1000 + thousand;
+  } else {
+    val = parseFloat(s);
+  }
+  return neg ? -val : val;
+}

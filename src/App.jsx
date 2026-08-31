@@ -177,11 +177,6 @@ export default function App() {
     });
   }, [tx]);
   const nedaGrandTotal = nedaBreakdown.reduce((s, y) => s + y.yearTotal, 0);
-  const nedaChartData = useMemo(() => {
-    const flat = [];
-    [...nedaBreakdown].reverse().forEach((y) => y.months.forEach((m) => flat.push({ label: m.month, amount: m.total, sortKey: m.sortKey })));
-    return flat.sort((a, b) => (a.sortKey < b.sortKey ? -1 : 1));
-  }, [nedaBreakdown]);
 
   function openAdd() { setForm((f) => ({ ...emptyForm(), t: f.t })); setEditingId(null); setFormError(''); }
   function openEdit(r) {
@@ -263,12 +258,20 @@ export default function App() {
   }
 
   function addDebtPerson(name) { persistDebts([...debts, { id: uid(debts), person: name, entries: [] }]); }
-  function addDebtEntry(personId, delta, note) {
+  // items: [{ delta, note }, ...] — added together in one persist so a
+  // simultaneous +/- entry pair gets distinct, non-colliding ids.
+  function addDebtEntries(personId, items) {
     persistDebts(debts.map((d) => {
       if (d.id !== personId) return d;
-      const nid = d.entries.reduce((m, e) => Math.max(m, e.id || 0), 0) + 1;
-      return { ...d, entries: [...d.entries, { id: nid, delta, note }] };
+      let nid = d.entries.reduce((m, e) => Math.max(m, e.id || 0), 0);
+      const newEntries = items.map((it) => { nid += 1; return { id: nid, delta: it.delta, note: it.note }; });
+      return { ...d, entries: [...d.entries, ...newEntries] };
     }));
+  }
+  function editDebtEntry(personId, entryId, delta, note) {
+    persistDebts(debts.map((d) => (d.id !== personId ? d : {
+      ...d, entries: d.entries.map((e) => (e.id === entryId ? { ...e, delta, note } : e)),
+    })));
   }
   function deleteDebtEntry(personId, entryId) {
     persistDebts(debts.map((d) => (d.id === personId ? { ...d, entries: d.entries.filter((e) => e.id !== entryId) } : d)));
@@ -354,8 +357,8 @@ export default function App() {
 
         {view === 'debts' && (
           <DebtsView
-            debts={debts} onAddPerson={addDebtPerson} onAddEntry={addDebtEntry}
-            onDeleteEntry={deleteDebtEntry} onDeletePerson={deleteDebtPerson}
+            debts={debts} onAddPerson={addDebtPerson} onAddEntries={addDebtEntries}
+            onEditEntry={editDebtEntry} onDeleteEntry={deleteDebtEntry} onDeletePerson={deleteDebtPerson}
           />
         )}
 
@@ -373,7 +376,7 @@ export default function App() {
             statsMonth={statsMonth} setStatsMonth={setStatsMonth} monthOptions={monthOptions}
             statsTotal={statsTotal} statsYearly={statsYearly} statsMonthly={statsMonthly}
             dailyChartData={dailyChartData}
-            nedaBreakdown={nedaBreakdown} nedaGrandTotal={nedaGrandTotal} nedaChartData={nedaChartData}
+            nedaBreakdown={nedaBreakdown} nedaGrandTotal={nedaGrandTotal}
             statsMonthExpenseTx={statsMonthExpenseTx} statsMonthIncomeTx={statsMonthIncomeTx}
             statsVisibleExpense={statsVisibleExpense} setStatsVisibleExpense={setStatsVisibleExpense}
             statsVisibleIncome={statsVisibleIncome} setStatsVisibleIncome={setStatsVisibleIncome}

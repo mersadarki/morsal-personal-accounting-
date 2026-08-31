@@ -15,7 +15,7 @@ function ChartFallback() {
 export default function StatsView({
   statsTab, setStatsTab, statsYear, setStatsYear, yearOptions,
   statsMonth, setStatsMonth, monthOptions, statsTotal, statsYearly, statsMonthly,
-  dailyChartData, nedaBreakdown, nedaGrandTotal, nedaChartData,
+  dailyChartData, nedaBreakdown, nedaGrandTotal,
   statsMonthExpenseTx, statsMonthIncomeTx,
   statsVisibleExpense, setStatsVisibleExpense, statsVisibleIncome, setStatsVisibleIncome,
   saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete,
@@ -78,7 +78,7 @@ export default function StatsView({
       )}
 
       {statsTab === 'neda' && (
-        <NedaBreakdown nedaBreakdown={nedaBreakdown} nedaGrandTotal={nedaGrandTotal} nedaChartData={nedaChartData} />
+        <NedaBreakdown nedaBreakdown={nedaBreakdown} nedaGrandTotal={nedaGrandTotal} />
       )}
     </div>
   );
