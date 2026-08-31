@@ -38,3 +38,5 @@ export function uid(list) { return list.reduce((m, r) => Math.max(m, r.id || 0),
 
 export function isTransferExpenseTitle(title) { return (title || '').trim() === 'جابجایی'; }
 export function isInstallmentTitle(title) { return (title || '').trim().indexOf('قسط') === 0; }
+
+export function jalaliToMonthLabel({ jy, jm }) { return `${MONTHS[jm - 1]} ${toFaDigits(jy)}`; }

@@ -57,3 +57,12 @@ export function todayDay() {
   const now = new Date();
   return toJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate()).jd;
 }
+export function todayJalali() {
+  const now = new Date();
+  return toJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+}
+export function tomorrowJalali() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+}

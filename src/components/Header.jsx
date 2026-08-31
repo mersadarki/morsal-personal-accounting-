@@ -12,11 +12,13 @@ export default function Header({ view, setView }) {
           </div>
           <div style={{ ...displayStyle, fontSize: 22, color: COLORS.paper }}>دفتر حساب</div>
         </div>
-        <div style={{ display: 'flex', gap: 6, background: COLORS.coverLight, padding: 4, borderRadius: 10 }}>
-          <button onClick={() => setView('home')} style={{ ...tabStyle(view === 'home'), flex: 1 }}>خانه</button>
-          <button onClick={() => setView('stats')} style={{ ...tabStyle(view === 'stats'), flex: 1 }}>آمار</button>
-          <button onClick={() => setView('settings')} style={{ ...tabStyle(view === 'settings'), flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-            <SettingsIcon size={13} /> تنظیمات
+        <div style={{ display: 'flex', gap: 4, background: COLORS.coverLight, padding: 4, borderRadius: 10 }}>
+          <button onClick={() => setView('home')} style={{ ...tabStyle(view === 'home'), flex: 1, padding: '7px 4px', fontSize: 12 }}>خانه</button>
+          <button onClick={() => setView('stats')} style={{ ...tabStyle(view === 'stats'), flex: 1, padding: '7px 4px', fontSize: 12 }}>آمار</button>
+          <button onClick={() => setView('debts')} style={{ ...tabStyle(view === 'debts'), flex: 1, padding: '7px 4px', fontSize: 12 }}>بدهی</button>
+          <button onClick={() => setView('installments')} style={{ ...tabStyle(view === 'installments'), flex: 1, padding: '7px 4px', fontSize: 12 }}>قسط</button>
+          <button onClick={() => setView('settings')} style={{ ...tabStyle(view === 'settings'), flex: 1, padding: '7px 4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, fontSize: 12 }}>
+            <SettingsIcon size={12} /> تنظیمات
           </button>
         </div>
       </div>

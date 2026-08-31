@@ -1,11 +1,13 @@
 // Real, durable, cross-session storage for the client-only PWA.
 // Backed by localStorage — persists across app restarts and browser sessions
 // on the device, replacing the sandbox-only `window.storage` API used by the
-// reference prototype. Same three logical stores: tx, balances, currentMonth.
+// reference prototype.
 
 export const TX_KEY = 'ledger-tx-v1';
 export const BAL_KEY = 'ledger-balances-v1';
 export const MONTH_KEY = 'ledger-current-month-v1';
+export const DEBTS_KEY = 'ledger-debts-v1';
+export const INSTALLMENTS_KEY = 'ledger-installments-v1';
 
 export function storageGet(key) {
   try {

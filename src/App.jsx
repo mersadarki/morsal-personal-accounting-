@@ -1,18 +1,22 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { COLORS } from './lib/constants';
-import { toEnglishDigits, monthInfo, uid, isTransferExpenseTitle, toFaDigits } from './lib/format';
-import { todayDay } from './lib/jalali';
-import { TX_KEY, BAL_KEY, MONTH_KEY, storageGet, storageSet } from './lib/storage';
+import { toEnglishDigits, monthInfo, uid, isTransferExpenseTitle, toFaDigits, jalaliToMonthLabel } from './lib/format';
+import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
+import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
-import { SEED_TX, SEED_BALANCES } from './lib/seed';
+import { SEED_TX, SEED_BALANCES, SEED_DEBTS, SEED_INSTALLMENTS } from './lib/seed';
 import { downloadBackup, exportExcel, readSheet, parseNedaRows, parseGeneralRows } from './lib/io';
 import { fontStyle } from './lib/ui.jsx';
 
 import Header from './components/Header';
 import CurrentMonthBar from './components/CurrentMonthBar';
 import HomeView from './components/home/HomeView';
+import InstallmentReminder from './components/home/InstallmentReminder';
+import QuickBalanceButtons from './components/home/QuickBalanceButtons';
 import StatsView from './components/stats/StatsView';
+import DebtsView from './components/debts/DebtsView';
+import InstallmentsView from './components/installments/InstallmentsView';
 import SettingsView from './components/settings/SettingsView';
 import BalanceFormModal from './components/settings/BalanceFormModal';
 
@@ -23,6 +27,8 @@ const DEFAULT_MONTH = 'شهریور ۱۴۰۵';
 export default function App() {
   const [tx, setTx] = useState([]);
   const [balances, setBalances] = useState({});
+  const [debts, setDebts] = useState([]);
+  const [installments, setInstallments] = useState([]);
   const [currentMonth, setCurrentMonth] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -66,12 +72,24 @@ export default function App() {
       if (rawM) setCurrentMonth(rawM);
       else { setCurrentMonth(DEFAULT_MONTH); storageSet(MONTH_KEY, DEFAULT_MONTH); }
     } catch { setCurrentMonth(DEFAULT_MONTH); }
+    try {
+      const rawD = storageGet(DEBTS_KEY);
+      if (rawD) setDebts(JSON.parse(rawD));
+      else { setDebts(SEED_DEBTS); storageSet(DEBTS_KEY, JSON.stringify(SEED_DEBTS)); }
+    } catch { setDebts(SEED_DEBTS); }
+    try {
+      const rawI = storageGet(INSTALLMENTS_KEY);
+      if (rawI) setInstallments(JSON.parse(rawI));
+      else { setInstallments(SEED_INSTALLMENTS); storageSet(INSTALLMENTS_KEY, JSON.stringify(SEED_INSTALLMENTS)); }
+    } catch { setInstallments(SEED_INSTALLMENTS); }
     setLoading(false);
   }
 
   function persistTx(next) { setTx(next); setSaving(true); storageSet(TX_KEY, JSON.stringify(next)); setSaving(false); }
   function persistBalances(next) { setBalances(next); setSaving(true); storageSet(BAL_KEY, JSON.stringify(next)); setSaving(false); }
   function persistMonth(m) { setCurrentMonth(m); storageSet(MONTH_KEY, m); }
+  function persistDebts(next) { setDebts(next); storageSet(DEBTS_KEY, JSON.stringify(next)); }
+  function persistInstallments(next) { setInstallments(next); storageSet(INSTALLMENTS_KEY, JSON.stringify(next)); }
 
   const monthOptions = useMemo(() => {
     const map = new Map();
@@ -105,6 +123,22 @@ export default function App() {
     entries.sort((a, b) => (monthInfo(a[0]).sortKey < monthInfo(b[0]).sortKey ? 1 : -1));
     return { month: entries[0][0], vals: entries[0][1] };
   }, [balances]);
+
+  const installmentReminders = useMemo(() => {
+    const todayJ = todayJalali();
+    const tomorrowJ = tomorrowJalali();
+    const todayM = jalaliToMonthLabel(todayJ);
+    const tomorrowM = jalaliToMonthLabel(tomorrowJ);
+    const items = [];
+    installments.forEach((plan) => {
+      plan.entries.forEach((en) => {
+        if (en.paid) return;
+        if (en.m === todayM && en.dt === todayJ.jd) items.push({ key: `${plan.id}-${en.id}`, name: plan.name, when: 'today' });
+        else if (en.m === tomorrowM && en.dt === tomorrowJ.jd) items.push({ key: `${plan.id}-${en.id}`, name: plan.name, when: 'tomorrow' });
+      });
+    });
+    return items;
+  }, [installments]);
 
   const statsTotal = useMemo(() => computeStatsRows(tx), [tx]);
   const statsYearly = useMemo(() => computeStatsRows(tx.filter((r) => monthInfo(r.m).year === statsYear)), [tx, statsYear]);
@@ -204,6 +238,45 @@ export default function App() {
   }
   function handleDeleteBalance(month) { const next = { ...balances }; delete next[month]; persistBalances(next); setConfirmDeleteBal(null); }
 
+  function quickAddBalance(account) {
+    const current = balances[currentMonth] || {};
+    const latest = latestBalances ? latestBalances.vals : {};
+    const baseline = current[account] != null ? current[account] : (latest[account] != null ? latest[account] : 0);
+    const nextEntry = { ...latest, ...current, [account]: baseline + 500 };
+    persistBalances({ ...balances, [currentMonth]: nextEntry });
+  }
+
+  function addDebtPerson(name) { persistDebts([...debts, { id: uid(debts), person: name, entries: [] }]); }
+  function addDebtEntry(personId, delta, note) {
+    persistDebts(debts.map((d) => {
+      if (d.id !== personId) return d;
+      const nid = d.entries.reduce((m, e) => Math.max(m, e.id || 0), 0) + 1;
+      return { ...d, entries: [...d.entries, { id: nid, delta, note }] };
+    }));
+  }
+  function deleteDebtEntry(personId, entryId) {
+    persistDebts(debts.map((d) => (d.id === personId ? { ...d, entries: d.entries.filter((e) => e.id !== entryId) } : d)));
+  }
+  function deleteDebtPerson(personId) { persistDebts(debts.filter((d) => d.id !== personId)); }
+
+  function addInstallmentPlan(name) { persistInstallments([...installments, { id: uid(installments), name, amount: null, entries: [] }]); }
+  function addInstallmentDate(planId, m, dt) {
+    persistInstallments(installments.map((p) => {
+      if (p.id !== planId) return p;
+      const nid = p.entries.reduce((mx, e) => Math.max(mx, e.id || 0), 0) + 1;
+      return { ...p, entries: [...p.entries, { id: nid, m, dt, paid: false }] };
+    }));
+  }
+  function toggleInstallmentPaid(planId, entryId) {
+    persistInstallments(installments.map((p) => (p.id !== planId ? p : {
+      ...p, entries: p.entries.map((e) => (e.id === entryId ? { ...e, paid: !e.paid } : e)),
+    })));
+  }
+  function deleteInstallmentDate(planId, entryId) {
+    persistInstallments(installments.map((p) => (p.id === planId ? { ...p, entries: p.entries.filter((e) => e.id !== entryId) } : p)));
+  }
+  function deleteInstallmentPlan(planId) { persistInstallments(installments.filter((p) => p.id !== planId)); }
+
   function handleExportExcel() { exportExcel(tx, balances, monthInfo); }
   function handleDownloadBackup() { downloadBackup(tx, balances, currentMonth); }
 
@@ -276,13 +349,31 @@ export default function App() {
         <CurrentMonthBar currentMonth={currentMonth} onChange={persistMonth} />
 
         {view === 'home' && (
-          <HomeView
-            latestBalances={latestBalances}
-            form={form} setForm={setForm} formError={formError} editingId={editingId}
-            titleSuggestions={titleSuggestions} onSubmit={submitForm} onCancelEdit={openAdd}
-            currentMonth={currentMonth} listTx={listTx} visibleCount={visibleCount} setVisibleCount={setVisibleCount}
-            saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
-            onEdit={openEdit} onDelete={handleDelete}
+          <>
+            <InstallmentReminder items={installmentReminders} />
+            <QuickBalanceButtons onQuickAdd={quickAddBalance} />
+            <HomeView
+              latestBalances={latestBalances}
+              form={form} setForm={setForm} formError={formError} editingId={editingId}
+              titleSuggestions={titleSuggestions} onSubmit={submitForm} onCancelEdit={openAdd}
+              currentMonth={currentMonth} listTx={listTx} visibleCount={visibleCount} setVisibleCount={setVisibleCount}
+              saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
+              onEdit={openEdit} onDelete={handleDelete}
+            />
+          </>
+        )}
+
+        {view === 'debts' && (
+          <DebtsView
+            debts={debts} onAddPerson={addDebtPerson} onAddEntry={addDebtEntry}
+            onDeleteEntry={deleteDebtEntry} onDeletePerson={deleteDebtPerson}
+          />
+        )}
+
+        {view === 'installments' && (
+          <InstallmentsView
+            installments={installments} onAddPlan={addInstallmentPlan} onAddDate={addInstallmentDate}
+            onTogglePaid={toggleInstallmentPaid} onDeleteDate={deleteInstallmentDate} onDeletePlan={deleteInstallmentPlan}
           />
         )}
 
