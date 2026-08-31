@@ -8,6 +8,7 @@ import { computeStatsRows } from './lib/stats';
 import { SEED_TX, SEED_BALANCES, SEED_DEBTS, SEED_INSTALLMENTS } from './lib/seed';
 import { downloadBackup, exportExcel, readSheet, parseNedaRows, parseGeneralRows } from './lib/io';
 import { fontStyle } from './lib/ui.jsx';
+import { useAppUpdate } from './lib/useAppUpdate';
 
 import Header from './components/Header';
 import CurrentMonthBar from './components/CurrentMonthBar';
@@ -52,6 +53,7 @@ export default function App() {
   const nedaFileRef = useRef(null);
   const genFileRef = useRef(null);
   const backupFileRef = useRef(null);
+  const update = useAppUpdate();
 
   useEffect(() => { load(); }, []);
 
@@ -405,6 +407,7 @@ export default function App() {
             onImportGeneral={handleImportGeneral} importMsg2={importMsg2} genFileRef={genFileRef}
             balances={balances} onAddBalance={openAddBalance} onEditBalance={openEditBalance}
             confirmDeleteBal={confirmDeleteBal} setConfirmDeleteBal={setConfirmDeleteBal} onDeleteBalance={handleDeleteBalance}
+            update={update}
           />
         )}
       </div>

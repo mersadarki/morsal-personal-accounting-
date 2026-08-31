@@ -3,6 +3,7 @@ import { COLORS } from '../../lib/constants';
 import { primaryBtn, secondaryBtn } from '../../lib/ui.jsx';
 import SettingsSection from './SettingsSection';
 import BalancesSection from './BalancesSection';
+import UpdateSection from './UpdateSection';
 
 export default function SettingsView({
   onDownloadBackup, onRestoreBackup, backupMsg, backupFileRef,
@@ -10,9 +11,15 @@ export default function SettingsView({
   onImportNeda, importMsg1, nedaFileRef,
   onImportGeneral, importMsg2, genFileRef,
   balances, onAddBalance, onEditBalance, confirmDeleteBal, setConfirmDeleteBal, onDeleteBalance,
+  update,
 }) {
   return (
     <div>
+      <UpdateSection
+        needRefresh={update.needRefresh} checking={update.checking} lastCheck={update.lastCheck}
+        lastApplied={update.lastApplied} buildTime={update.buildTime} onCheck={update.checkForUpdate} onApply={update.applyUpdate}
+      />
+
       <SettingsSection title="پشتیبان‌گیری کامل">
         <div style={{ fontSize: 11.5, color: COLORS.inkLight, marginBottom: 10, lineHeight: 2 }}>
           یک فایل شامل همه تراکنش‌ها، موجودی‌ها و ماه جاری می‌گیرد؛ برای بازیابی همون فایل رو دوباره وارد کنید.
