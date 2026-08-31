@@ -33,6 +33,10 @@ export function fmt(n) {
   const grouped = Math.abs(rounded).toLocaleString('en-US').replace(/,/g, '٫');
   return (neg ? '-' : '') + toFaDigits(grouped);
 }
+// Short unit tag ("هزار ت") — every stored amount is in hezar-toman, but
+// that's easy to lose track of on a bare number, so this gets appended
+// next to displayed amounts throughout the app.
+export const UNIT_TAG = 'هزار ت';
 
 export function uid(list) { return list.reduce((m, r) => Math.max(m, r.id || 0), 0) + 1; }
 

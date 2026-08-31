@@ -19,8 +19,8 @@ export default function EntryForm({ form, setForm, formError, editingId, titleSu
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
         <div style={{ flex: 2 }}>
-          <FieldLabel>مبلغ (هزار تومان — یا مثلاً ۵/۸۰۰ برای ۵ میلیون و ۸۰۰ هزار)</FieldLabel>
-          <input autoFocus inputMode="decimal" value={form.a} onChange={(e) => setForm((f) => ({ ...f, a: e.target.value }))} placeholder="مثلاً: 1500" style={{ ...inputStyle, width: '100%' }} />
+          <FieldLabel>مبلغ (هزار تومان)</FieldLabel>
+          <input autoFocus inputMode="decimal" value={form.a} onChange={(e) => setForm((f) => ({ ...f, a: e.target.value }))} style={{ ...inputStyle, width: '100%' }} />
           <AmountPreview value={form.a} />
         </div>
         <div style={{ flex: 1 }}>

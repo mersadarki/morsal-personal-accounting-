@@ -2,7 +2,7 @@ import { useState, lazy, Suspense } from 'react';
 import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { ACCOUNT_LABELS, COLORS } from '../../lib/constants';
 import { fmt, toFaDigits } from '../../lib/format';
-import { displayStyle, iconBtn } from '../../lib/ui.jsx';
+import { displayStyle, iconBtn, UnitTag } from '../../lib/ui.jsx';
 
 const NedaChart = lazy(() => import('./NedaChart'));
 
@@ -28,7 +28,7 @@ export default function NedaBreakdown({ nedaBreakdown, nedaGrandTotal }) {
     <div>
       <div style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14, marginBottom: 14, textAlign: 'center' }}>
         <div style={{ fontSize: 12, color: COLORS.inkLight, marginBottom: 4 }}>مجموع کل هزینه‌های ندا (هزار تومان)</div>
-        <div className="tabular" style={{ fontSize: 22, fontWeight: 800, color: COLORS.expense }}>{fmt(nedaGrandTotal)}</div>
+        <div className="tabular" style={{ fontSize: 22, fontWeight: 800, color: COLORS.expense }}>{fmt(nedaGrandTotal)}<UnitTag /></div>
       </div>
 
       {nedaBreakdown.length > 0 && (
@@ -73,7 +73,7 @@ export default function NedaBreakdown({ nedaBreakdown, nedaGrandTotal }) {
                 {yearOpen ? <ChevronUp size={15} color={COLORS.inkLight} /> : <ChevronDown size={15} color={COLORS.inkLight} />}
                 <div style={{ ...displayStyle, fontSize: 16, color: COLORS.cover }}>سال {toFaDigits(y.year)}</div>
               </div>
-              <div className="tabular" style={{ fontSize: 13, fontWeight: 700, color: COLORS.expense }}>{fmt(y.yearTotal)}</div>
+              <div className="tabular" style={{ fontSize: 13, fontWeight: 700, color: COLORS.expense }}>{fmt(y.yearTotal)}<UnitTag /></div>
             </button>
             {yearOpen && (
               <div style={{ marginTop: 6, paddingRight: 8 }}>
@@ -89,13 +89,13 @@ export default function NedaBreakdown({ nedaBreakdown, nedaGrandTotal }) {
                           {monthOpen ? <ChevronUp size={13} color={COLORS.inkLight} /> : <ChevronDown size={13} color={COLORS.inkLight} />}
                           <div style={{ fontWeight: 700, fontSize: 13 }}>{mo.month}</div>
                         </div>
-                        <div className="tabular" style={{ fontSize: 13, fontWeight: 700, color: COLORS.expense }}>{fmt(mo.total)}</div>
+                        <div className="tabular" style={{ fontSize: 13, fontWeight: 700, color: COLORS.expense }}>{fmt(mo.total)}<UnitTag /></div>
                       </button>
                       {monthOpen && mo.rows.map((r) => (
                         <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderTop: `1px solid ${COLORS.line}` }}>
                           <div style={{ flex: 1, fontSize: 12.5 }}>{r.ti || 'بدون عنوان'}</div>
                           <div style={{ fontSize: 11, color: COLORS.inkLight }}>{ACCOUNT_LABELS[r.acc] || r.acc}{r.dt ? ` · روز ${toFaDigits(r.dt)}` : ''}</div>
-                          <div className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.expense }}>{fmt(r.a)}</div>
+                          <div className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.expense }}>{fmt(r.a)}<UnitTag /></div>
                         </div>
                       ))}
                     </div>

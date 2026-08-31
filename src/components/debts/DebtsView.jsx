@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
 import { fmt } from '../../lib/format';
-import { inputStyle, primaryBtn } from '../../lib/ui.jsx';
+import { inputStyle, primaryBtn, UnitTag } from '../../lib/ui.jsx';
 import DebtCard from './DebtCard';
 
 export default function DebtsView({ debts, onAddPerson, onAddEntries, onEditEntry, onDeleteEntry, onDeletePerson }) {
@@ -21,7 +21,7 @@ export default function DebtsView({ debts, onAddPerson, onAddEntries, onEditEntr
     <div>
       <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14, marginBottom: 14, textAlign: 'center' }}>
         <div style={{ fontSize: 12, color: COLORS.inkLight, marginBottom: 4 }}>مجموع بدهی‌ها (هزار تومان)</div>
-        <div className="tabular" style={{ fontSize: 22, fontWeight: 800, color: grandTotal >= 0 ? COLORS.income : COLORS.expense }}>{fmt(grandTotal)}</div>
+        <div className="tabular" style={{ fontSize: 22, fontWeight: 800, color: grandTotal >= 0 ? COLORS.income : COLORS.expense }}>{fmt(grandTotal)}<UnitTag /></div>
         <div style={{ fontSize: 10.5, color: COLORS.inkLight, marginTop: 4 }}>عدد مثبت یعنی طرف بهتون بدهکاره، منفی یعنی شما بدهکارید</div>
       </div>
 

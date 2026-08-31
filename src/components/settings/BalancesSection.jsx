@@ -1,7 +1,7 @@
 import { Plus, Pencil, Trash2, Check, X } from 'lucide-react';
 import { ACCOUNTS, ACCOUNT_LABELS, COLORS } from '../../lib/constants';
 import { fmt, monthInfo } from '../../lib/format';
-import { primaryBtn, iconBtn } from '../../lib/ui.jsx';
+import { primaryBtn, iconBtn, UnitTag } from '../../lib/ui.jsx';
 import SettingsSection from './SettingsSection';
 
 export default function BalancesSection({
@@ -36,7 +36,7 @@ export default function BalancesSection({
             {ACCOUNTS.map((a) => b[a] != null && (
               <div key={a}>
                 <div style={{ fontSize: 10, color: COLORS.inkLight }}>{ACCOUNT_LABELS[a]}</div>
-                <div className="tabular" style={{ fontSize: 12, fontWeight: 700 }}>{fmt(b[a])}</div>
+                <div className="tabular" style={{ fontSize: 12, fontWeight: 700 }}>{fmt(b[a])}<UnitTag /></div>
               </div>
             ))}
           </div>

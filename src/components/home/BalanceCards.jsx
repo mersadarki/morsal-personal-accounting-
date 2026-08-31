@@ -1,6 +1,7 @@
 import { Landmark, Wallet, Banknote, DollarSign } from 'lucide-react';
 import { ACCOUNTS, ACCOUNT_LABELS, COLORS } from '../../lib/constants';
 import { fmt } from '../../lib/format';
+import { UnitTag } from '../../lib/ui.jsx';
 
 // Distinct icon + brand-ish color per account, standing in for a bank logo
 // (we don't embed actual bank trademarks) — ملی/اعتبار ملی share Bank Melli's
@@ -29,16 +30,18 @@ export default function BalanceCards({ latestBalances }) {
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 11, color: COLORS.inkLight, marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ACCOUNT_LABELS[a]}</div>
                 <div className="tabular" style={{ fontSize: 14, fontWeight: 800, color: COLORS.cover }}>
-                  {latestBalances && latestBalances.vals[a] != null ? fmt(latestBalances.vals[a]) : '—'}
+                  {latestBalances && latestBalances.vals[a] != null ? (<>{fmt(latestBalances.vals[a])}<UnitTag /></>) : '—'}
                 </div>
               </div>
             </div>
           );
         })}
       </div>
-      <div style={{ fontSize: 11, color: COLORS.inkLight, marginBottom: 16, textAlign: 'center' }}>
-        مبالغ به هزار تومان — مثلاً ۱٫۵۰۰ یعنی یک میلیون و پانصد هزار تومان{latestBalances ? ` · آخرین موجودی: ${latestBalances.month}` : ''}
-      </div>
+      {latestBalances && (
+        <div style={{ fontSize: 11, color: COLORS.inkLight, marginBottom: 16, textAlign: 'center' }}>
+          آخرین موجودی: {latestBalances.month}
+        </div>
+      )}
     </>
   );
 }

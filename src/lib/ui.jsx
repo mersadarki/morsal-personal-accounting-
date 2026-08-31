@@ -1,5 +1,5 @@
 import { COLORS } from './constants';
-import { describeAmount } from './format';
+import { describeAmount, UNIT_TAG } from './format';
 
 export const fontStyle = { fontFamily: "'Vazirmatn', sans-serif" };
 export const displayStyle = { fontFamily: "'Lalezar', cursive" };
@@ -25,4 +25,10 @@ export function AmountPreview({ value }) {
   const text = describeAmount(value);
   if (!text) return null;
   return <div style={{ fontSize: 11, color: COLORS.brassDark, marginTop: 3 }}>= {text}</div>;
+}
+
+// Small unit tag appended next to every displayed amount so it's always
+// clear this is hezar-toman, not toman or a bigger/smaller unit.
+export function UnitTag() {
+  return <span style={{ fontSize: '0.7em', fontWeight: 500, color: COLORS.inkLight, marginRight: 3 }}>{UNIT_TAG}</span>;
 }
