@@ -35,11 +35,11 @@ export default function SettingsView({
 
       <SettingsSection title="خروجی اکسل">
         <div style={{ fontSize: 11.5, color: COLORS.inkLight, marginBottom: 10 }}>هر کدوم رو بزنید، همون بخش به‌صورت یه فایل اکسل جدا دانلود می‌شه — برای مشاهده/اشتراک‌گذاری، نه بازیابی.</div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button onClick={onExportOwnExpenses} aria-label="خروجی اکسل هزینه خودم" style={secondaryBtn}><Download size={15} /> هزینه خودم</button>
-          <button onClick={onExportNedaExpenses} aria-label="خروجی اکسل هزینه ندا" style={secondaryBtn}><Download size={15} /> هزینه ندا</button>
-          <button onClick={onExportDebts} aria-label="خروجی اکسل بدهی" style={secondaryBtn}><Download size={15} /> بدهی</button>
-          <button onClick={onExportInstallments} aria-label="خروجی اکسل قسط" style={secondaryBtn}><Download size={15} /> قسط</button>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'nowrap', overflowX: 'auto' }}>
+          <button onClick={onExportOwnExpenses} aria-label="خروجی اکسل هزینه خودم" style={{ ...secondaryBtn, padding: '7px 8px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}><Download size={13} /> هزینه خودم</button>
+          <button onClick={onExportNedaExpenses} aria-label="خروجی اکسل هزینه ندا" style={{ ...secondaryBtn, padding: '7px 8px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}><Download size={13} /> هزینه ندا</button>
+          <button onClick={onExportDebts} aria-label="خروجی اکسل بدهی" style={{ ...secondaryBtn, padding: '7px 8px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}><Download size={13} /> بدهی</button>
+          <button onClick={onExportInstallments} aria-label="خروجی اکسل قسط" style={{ ...secondaryBtn, padding: '7px 8px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}><Download size={13} /> قسط</button>
         </div>
       </SettingsSection>
 

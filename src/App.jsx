@@ -47,6 +47,8 @@ export default function App() {
   const [showBalForm, setShowBalForm] = useState(false);
   const [confirmDeleteBal, setConfirmDeleteBal] = useState(null);
   const [visibleCount, setVisibleCount] = useState(40);
+  const [statsVisibleExpense, setStatsVisibleExpense] = useState(40);
+  const [statsVisibleIncome, setStatsVisibleIncome] = useState(40);
   const [backupMsg, setBackupMsg] = useState('');
   const backupFileRef = useRef(null);
   const update = useAppUpdate();
@@ -111,9 +113,14 @@ export default function App() {
 
   useEffect(() => { if (!statsMonth && currentMonth) setStatsMonth(currentMonth); }, [currentMonth]);
   useEffect(() => { if (!statsYear && yearOptions.length) setStatsYear(yearOptions[0]); }, [yearOptions]);
+  useEffect(() => { setStatsVisibleExpense(40); setStatsVisibleIncome(40); }, [statsMonth]);
 
   const currentMonthTx = useMemo(() => tx.filter((r) => r.m === currentMonth).sort((a, b) => b.id - a.id), [tx, currentMonth]);
-  const listTx = useMemo(() => currentMonthTx.filter((r) => r.t === form.t), [currentMonthTx, form.t]);
+  const todayTx = useMemo(() => currentMonthTx.filter((r) => r.dt === todayDay()), [currentMonthTx]);
+  const listTx = useMemo(() => todayTx.filter((r) => r.t === form.t), [todayTx, form.t]);
+
+  const statsMonthExpenseTx = useMemo(() => tx.filter((r) => r.m === statsMonth && r.t === 'e').sort((a, b) => b.id - a.id), [tx, statsMonth]);
+  const statsMonthIncomeTx = useMemo(() => tx.filter((r) => r.m === statsMonth && r.t === 'i').sort((a, b) => b.id - a.id), [tx, statsMonth]);
 
   const latestBalances = useMemo(() => {
     const entries = Object.entries(balances);
@@ -180,6 +187,8 @@ export default function App() {
   function openEdit(r) {
     setForm({ t: r.t, acc: r.acc, a: String(r.a), ti: r.ti || '', neda: !!r.neda, cat: r.cat || 'vpn', personalVpn: !!r.personalVpn, dt: r.dt != null ? String(r.dt) : String(todayDay()) });
     setEditingId(r.id); setFormError('');
+    if (r.m && r.m !== currentMonth) persistMonth(r.m);
+    setView('home');
   }
   function submitForm(e) {
     e.preventDefault();
@@ -336,7 +345,7 @@ export default function App() {
               latestBalances={latestBalances}
               form={form} setForm={setForm} formError={formError} editingId={editingId}
               titleSuggestions={titleSuggestions} onSubmit={submitForm} onCancelEdit={openAdd}
-              currentMonth={currentMonth} listTx={listTx} visibleCount={visibleCount} setVisibleCount={setVisibleCount}
+              listTx={listTx} visibleCount={visibleCount} setVisibleCount={setVisibleCount}
               saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
               onEdit={openEdit} onDelete={handleDelete}
             />
@@ -365,6 +374,11 @@ export default function App() {
             statsTotal={statsTotal} statsYearly={statsYearly} statsMonthly={statsMonthly}
             dailyChartData={dailyChartData}
             nedaBreakdown={nedaBreakdown} nedaGrandTotal={nedaGrandTotal} nedaChartData={nedaChartData}
+            statsMonthExpenseTx={statsMonthExpenseTx} statsMonthIncomeTx={statsMonthIncomeTx}
+            statsVisibleExpense={statsVisibleExpense} setStatsVisibleExpense={setStatsVisibleExpense}
+            statsVisibleIncome={statsVisibleIncome} setStatsVisibleIncome={setStatsVisibleIncome}
+            saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
+            onEdit={openEdit} onDelete={handleDelete}
           />
         )}
 

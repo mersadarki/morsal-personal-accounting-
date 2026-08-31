@@ -4,6 +4,7 @@ import { toFaDigits } from '../../lib/format';
 import { FieldLabel, selectStyle, subTabStyle } from '../../lib/ui.jsx';
 import StatsGrid from './StatsGrid';
 import NedaBreakdown from './NedaBreakdown';
+import TransactionList from '../home/TransactionList';
 
 const DailyChart = lazy(() => import('./DailyChart'));
 
@@ -15,6 +16,9 @@ export default function StatsView({
   statsTab, setStatsTab, statsYear, setStatsYear, yearOptions,
   statsMonth, setStatsMonth, monthOptions, statsTotal, statsYearly, statsMonthly,
   dailyChartData, nedaBreakdown, nedaGrandTotal, nedaChartData,
+  statsMonthExpenseTx, statsMonthIncomeTx,
+  statsVisibleExpense, setStatsVisibleExpense, statsVisibleIncome, setStatsVisibleIncome,
+  saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete,
 }) {
   const statsShown = statsTab === 'total' ? statsTotal : statsTab === 'yearly' ? statsYearly : statsTab === 'monthly' ? statsMonthly : null;
 
@@ -52,6 +56,25 @@ export default function StatsView({
 
       {(statsTab === 'total' || statsTab === 'yearly' || statsTab === 'monthly') && statsShown && (
         <StatsGrid stats={statsShown} />
+      )}
+
+      {statsTab === 'monthly' && (
+        <div style={{ marginTop: 16 }}>
+          <TransactionList
+            type="e" monthLabel={statsMonth} rows={statsMonthExpenseTx} visibleCount={statsVisibleExpense}
+            onShowMore={() => setStatsVisibleExpense((c) => c + 40)} saving={saving}
+            confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
+            onEdit={onEdit} onDelete={onDelete}
+          />
+          <div style={{ marginTop: 16 }}>
+            <TransactionList
+              type="i" monthLabel={statsMonth} rows={statsMonthIncomeTx} visibleCount={statsVisibleIncome}
+              onShowMore={() => setStatsVisibleIncome((c) => c + 40)} saving={saving}
+              confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
+              onEdit={onEdit} onDelete={onDelete}
+            />
+          </div>
+        </div>
       )}
 
       {statsTab === 'neda' && (
