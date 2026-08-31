@@ -185,13 +185,21 @@ export default function App() {
     if (r.m && r.m !== currentMonth) persistMonth(r.m);
     setView('home');
   }
-  function adjustBalance(account, delta) {
-    const current = balances[currentMonth] || {};
+  // adjustments: [{ account, delta }, ...] — applied together off the same
+  // base so a reversal + re-application (editing an entry) lands correctly
+  // in one persist, instead of the second call clobbering the first.
+  function adjustBalances(month, adjustments) {
+    const current = balances[month] || {};
     const latest = latestBalances ? latestBalances.vals : {};
-    const baseline = current[account] != null ? current[account] : (latest[account] != null ? latest[account] : 0);
-    const nextEntry = { ...latest, ...current, [account]: baseline + delta };
-    persistBalances({ ...balances, [currentMonth]: nextEntry });
+    const nextEntry = { ...latest, ...current };
+    adjustments.forEach(({ account, delta }) => {
+      const baseline = nextEntry[account] != null ? nextEntry[account] : 0;
+      nextEntry[account] = baseline + delta;
+    });
+    persistBalances({ ...balances, [month]: nextEntry });
   }
+  function adjustBalance(month, account, delta) { adjustBalances(month, [{ account, delta }]); }
+  function txBalanceDelta(rec) { return rec.t === 'i' ? rec.a : -rec.a; }
 
   function submitForm(e) {
     e.preventDefault();
@@ -203,7 +211,11 @@ export default function App() {
     if (form.t === 'i') {
       const rec = { ...base, t: 'i', ti: '', cat: form.cat };
       if (editingId != null) {
+        const oldRec = tx.find((r) => r.id === editingId);
         persistTx(tx.map((r) => (r.id === editingId ? { ...rec, id: editingId } : r)));
+        const adjustments = oldRec ? [{ account: oldRec.acc, delta: -txBalanceDelta(oldRec) }] : [];
+        adjustments.push({ account: form.acc, delta: amt });
+        adjustBalances(currentMonth, adjustments);
       } else {
         const matchIdx = tx.findIndex((r) => r.t === 'i' && r.m === currentMonth && r.dt === rec.dt && r.acc === rec.acc && r.cat === rec.cat && !r.transfer && !r.loan);
         if (matchIdx > -1 && !form.transfer && !form.loan) {
@@ -212,20 +224,30 @@ export default function App() {
         } else {
           persistTx([...tx, { ...rec, id: uid(tx) }]);
         }
-        if (form.transfer || form.loan) adjustBalance(form.acc, amt);
+        adjustBalance(currentMonth, form.acc, amt);
       }
     } else {
       const rec = { ...base, t: 'e', ti: form.ti.trim(), neda: form.neda };
-      if (editingId != null) persistTx(tx.map((r) => (r.id === editingId ? { ...rec, id: editingId } : r)));
-      else {
+      if (editingId != null) {
+        const oldRec = tx.find((r) => r.id === editingId);
+        persistTx(tx.map((r) => (r.id === editingId ? { ...rec, id: editingId } : r)));
+        const adjustments = oldRec ? [{ account: oldRec.acc, delta: -txBalanceDelta(oldRec) }] : [];
+        adjustments.push({ account: form.acc, delta: -amt });
+        adjustBalances(currentMonth, adjustments);
+      } else {
         persistTx([...tx, { ...rec, id: uid(tx) }]);
-        if (form.transfer || form.loan) adjustBalance(form.acc, -amt);
+        adjustBalance(currentMonth, form.acc, -amt);
       }
     }
     setForm((f) => ({ ...emptyForm(), t: f.t }));
     setEditingId(null);
   }
-  function handleDelete(id) { persistTx(tx.filter((r) => r.id !== id)); setConfirmDeleteId(null); }
+  function handleDelete(id) {
+    const rec = tx.find((r) => r.id === id);
+    if (rec) adjustBalance(rec.m, rec.acc, -txBalanceDelta(rec));
+    persistTx(tx.filter((r) => r.id !== id));
+    setConfirmDeleteId(null);
+  }
 
   function openAddBalance() { setBalForm({ ...emptyBalForm, month: currentMonth }); setEditingBalMonth(null); setBalError(''); setShowBalForm(true); }
   function openEditBalance(month) {
@@ -253,7 +275,7 @@ export default function App() {
   function handleDeleteBalance(month) { const next = { ...balances }; delete next[month]; persistBalances(next); setConfirmDeleteBal(null); }
 
   function quickAddBalance(account) {
-    adjustBalance(account, 500);
+    adjustBalance(currentMonth, account, 500);
 
     const amt = 500;
     const dt = todayDay();
