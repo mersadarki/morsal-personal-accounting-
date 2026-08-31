@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Plus, Pencil, Check, X } from 'lucide-react';
+import { Trash2, Plus, Pencil, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
 import { fmt, parseMoneyShorthand } from '../../lib/format';
 import { inputStyle, iconBtn, secondaryBtn } from '../../lib/ui.jsx';
@@ -49,6 +49,7 @@ function EntryRow({ entry, debtId, onEditEntry, onDeleteEntry }) {
 }
 
 export default function DebtCard({ debt, onAddEntries, onEditEntry, onDeleteEntry, onDeletePerson }) {
+  const [expanded, setExpanded] = useState(false);
   const [plus, setPlus] = useState('');
   const [minus, setMinus] = useState('');
   const [note, setNote] = useState('');
@@ -73,38 +74,47 @@ export default function DebtCard({ debt, onAddEntries, onEditEntry, onDeleteEntr
 
   return (
     <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, marginBottom: 12, overflow: 'hidden' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: COLORS.paperDark }}>
-        <div style={{ fontWeight: 700, fontSize: 14 }}>{debt.person}</div>
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: COLORS.paperDark, border: 'none', cursor: 'pointer' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {expanded ? <ChevronUp size={15} color={COLORS.inkLight} /> : <ChevronDown size={15} color={COLORS.inkLight} />}
+          <div style={{ fontWeight: 700, fontSize: 14 }}>{debt.person}</div>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontSize: 11, color: COLORS.inkLight }}>مانده:</div>
           <div className="tabular" style={{ fontWeight: 800, fontSize: 14, color: total >= 0 ? COLORS.income : COLORS.expense }}>{fmt(total)}</div>
-          <button onClick={() => onDeletePerson(debt.id)} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></button>
+          <span role="button" tabIndex={0} aria-label="حذف شخص" onClick={(e) => { e.stopPropagation(); onDeletePerson(debt.id); }} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></span>
         </div>
-      </div>
-      {debt.entries.length > 0 && (
-        <div>
-          {debt.entries.map((en) => (
-            <EntryRow key={en.id} entry={en} debtId={debt.id} onEditEntry={onEditEntry} onDeleteEntry={onDeleteEntry} />
-          ))}
-        </div>
+      </button>
+      {expanded && (
+        <>
+          {debt.entries.length > 0 && (
+            <div>
+              {debt.entries.map((en) => (
+                <EntryRow key={en.id} entry={en} debtId={debt.id} onEditEntry={onEditEntry} onDeleteEntry={onDeleteEntry} />
+              ))}
+            </div>
+          )}
+          <form onSubmit={submit} style={{ padding: 10, borderTop: `1px solid ${COLORS.line}` }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 100px' }}>
+                <div style={{ fontSize: 10.5, color: COLORS.income, marginBottom: 3, fontWeight: 700 }}>+ بدهی جدید</div>
+                <input inputMode="decimal" value={plus} onChange={(e) => setPlus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={inputStyle} />
+              </div>
+              <div style={{ flex: '1 1 100px' }}>
+                <div style={{ fontSize: 10.5, color: COLORS.expense, marginBottom: 3, fontWeight: 700 }}>− دریافتی</div>
+                <input inputMode="decimal" value={minus} onChange={(e) => setMinus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={inputStyle} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="یادداشت..." style={{ ...inputStyle, flex: 1 }} />
+              <button type="submit" style={{ ...secondaryBtn, flexShrink: 0 }}><Plus size={14} /> ثبت</button>
+            </div>
+          </form>
+          {error && <div style={{ color: COLORS.expense, fontSize: 12, padding: '0 12px 10px' }}>{error}</div>}
+        </>
       )}
-      <form onSubmit={submit} style={{ padding: 10, borderTop: `1px solid ${COLORS.line}` }}>
-        <div style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 100px' }}>
-            <div style={{ fontSize: 10.5, color: COLORS.income, marginBottom: 3, fontWeight: 700 }}>+ بدهی جدید</div>
-            <input inputMode="decimal" value={plus} onChange={(e) => setPlus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={inputStyle} />
-          </div>
-          <div style={{ flex: '1 1 100px' }}>
-            <div style={{ fontSize: 10.5, color: COLORS.expense, marginBottom: 3, fontWeight: 700 }}>− دریافتی</div>
-            <input inputMode="decimal" value={minus} onChange={(e) => setMinus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={inputStyle} />
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="یادداشت..." style={{ ...inputStyle, flex: 1 }} />
-          <button type="submit" style={{ ...secondaryBtn, flexShrink: 0 }}><Plus size={14} /> ثبت</button>
-        </div>
-      </form>
-      {error && <div style={{ color: COLORS.expense, fontSize: 12, padding: '0 12px 10px' }}>{error}</div>}
     </div>
   );
 }
