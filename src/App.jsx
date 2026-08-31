@@ -244,6 +244,15 @@ export default function App() {
     const baseline = current[account] != null ? current[account] : (latest[account] != null ? latest[account] : 0);
     const nextEntry = { ...latest, ...current, [account]: baseline + 500 };
     persistBalances({ ...balances, [currentMonth]: nextEntry });
+
+    const amt = 500;
+    const dt = todayDay();
+    const matchIdx = tx.findIndex((r) => r.t === 'i' && r.m === currentMonth && r.dt === dt && r.acc === account && r.cat === 'vpn' && !r.personalVpn);
+    if (matchIdx > -1) {
+      persistTx(tx.map((r, i) => (i === matchIdx ? { ...r, a: (r.a || 0) + amt } : r)));
+    } else {
+      persistTx([...tx, { t: 'i', m: currentMonth, dt, acc: account, a: amt, ti: '', cat: 'vpn', personalVpn: false, id: uid(tx) }]);
+    }
   }
 
   function addDebtPerson(name) { persistDebts([...debts, { id: uid(debts), person: name, entries: [] }]); }
