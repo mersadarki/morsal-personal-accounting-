@@ -1,6 +1,6 @@
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { ACCOUNTS, ACCOUNT_LABELS, INCOME_CATS, INCOME_CAT_LABELS, INCOME_QUICK, COLORS } from '../../lib/constants';
-import { FieldLabel, AmountPreview, inputStyle, selectStyle, primaryBtn, secondaryBtn, typeToggle, quickBtn } from '../../lib/ui.jsx';
+import { FieldLabel, AmountPreview, AmountInput, inputStyle, selectStyle, primaryBtn, secondaryBtn, typeToggle, quickBtn } from '../../lib/ui.jsx';
 import { toFaDigits } from '../../lib/format';
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -19,8 +19,8 @@ export default function EntryForm({ form, setForm, formError, editingId, titleSu
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
         <div style={{ flex: 2 }}>
-          <FieldLabel>مبلغ (هزار تومان)</FieldLabel>
-          <input autoFocus inputMode="decimal" value={form.a} onChange={(e) => setForm((f) => ({ ...f, a: e.target.value }))} style={{ ...inputStyle, width: '100%' }} />
+          <FieldLabel>مبلغ</FieldLabel>
+          <AmountInput autoFocus value={form.a} onChange={(e) => setForm((f) => ({ ...f, a: e.target.value }))} />
           <AmountPreview value={form.a} />
         </div>
         <div style={{ flex: 1 }}>

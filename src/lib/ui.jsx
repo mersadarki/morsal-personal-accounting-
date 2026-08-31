@@ -32,3 +32,22 @@ export function AmountPreview({ value }) {
 export function UnitTag() {
   return <span style={{ fontSize: '0.7em', fontWeight: 500, color: COLORS.inkLight, marginRight: 3 }}>{UNIT_TAG}</span>;
 }
+
+// Amount input with the unit tag baked in as an inline suffix inside the
+// field itself, instead of spelling it out in the field label.
+export function AmountInput({ value, onChange, autoFocus, style }) {
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        autoFocus={autoFocus}
+        inputMode="decimal"
+        value={value}
+        onChange={onChange}
+        style={{ ...inputStyle, width: '100%', paddingLeft: 46, ...style }}
+      />
+      <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 11.5, fontWeight: 600, color: COLORS.inkLight, pointerEvents: 'none' }}>
+        {UNIT_TAG}
+      </span>
+    </div>
+  );
+}

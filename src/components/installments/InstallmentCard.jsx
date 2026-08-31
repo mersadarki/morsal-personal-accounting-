@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { Trash2, Plus, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Plus, Check, ChevronDown, ChevronUp, Repeat } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
 import { toFaDigits, toEnglishDigits } from '../../lib/format';
 import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel } from '../../lib/ui.jsx';
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
-export default function InstallmentCard({ plan, onAddDate, onTogglePaid, onDeleteDate, onDeletePlan }) {
+export default function InstallmentCard({ plan, currentMonth, onAddDate, onTogglePaid, onDeleteDate, onDeletePlan }) {
   const [expanded, setExpanded] = useState(false);
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('1');
   const [error, setError] = useState('');
+  const [quickDay, setQuickDay] = useState('1');
 
   function submit(e) {
     e.preventDefault();
@@ -22,6 +23,13 @@ export default function InstallmentCard({ plan, onAddDate, onTogglePaid, onDelet
 
   const sorted = [...plan.entries].sort((a, b) => (a.paid === b.paid ? 0 : a.paid ? 1 : -1));
   const remaining = plan.entries.filter((en) => !en.paid).length;
+  const thisMonthAdded = plan.recurring && plan.entries.some((en) => en.m === currentMonth);
+
+  function quickAddThisMonth() {
+    if (thisMonthAdded || !currentMonth) return;
+    const d = parseInt(toEnglishDigits(quickDay), 10);
+    onAddDate(plan.id, currentMonth, d);
+  }
 
   return (
     <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, marginBottom: 12, overflow: 'hidden' }}>
@@ -32,9 +40,14 @@ export default function InstallmentCard({ plan, onAddDate, onTogglePaid, onDelet
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {expanded ? <ChevronUp size={15} color={COLORS.inkLight} /> : <ChevronDown size={15} color={COLORS.inkLight} />}
           <div style={{ fontWeight: 700, fontSize: 14 }}>{plan.name}</div>
+          {plan.recurring && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, background: COLORS.brassDark + '22', color: COLORS.brassDark, padding: '1px 6px', borderRadius: 6, fontWeight: 700 }}>
+              <Repeat size={10} /> ماهانه
+            </span>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontSize: 12, color: COLORS.inkLight }}>{remaining > 0 ? `${toFaDigits(remaining)} مونده` : 'تسویه'}</div>
+          <div style={{ fontSize: 12, color: COLORS.inkLight }}>{remaining > 0 ? `${toFaDigits(remaining)} مونده` : (plan.recurring ? '' : 'تسویه')}</div>
           <span role="button" tabIndex={0} aria-label="حذف قسط" onClick={(e) => { e.stopPropagation(); onDeletePlan(plan.id); }} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></span>
         </div>
       </button>
@@ -57,6 +70,19 @@ export default function InstallmentCard({ plan, onAddDate, onTogglePaid, onDelet
                   <button onClick={() => onDeleteDate(plan.id, en.id)} style={iconBtn(COLORS.inkLight)}><Trash2 size={12} /></button>
                 </div>
               ))}
+            </div>
+          )}
+          {plan.recurring && (
+            <div style={{ display: 'flex', gap: 6, padding: 10, borderTop: `1px solid ${COLORS.line}`, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 90px' }}>
+                <FieldLabel>روز سررسید</FieldLabel>
+                <select value={quickDay} onChange={(e) => setQuickDay(e.target.value)} style={selectStyle}>
+                  {dayOptions.map((d) => <option key={d} value={d}>{toFaDigits(d)}</option>)}
+                </select>
+              </div>
+              <button type="button" onClick={quickAddThisMonth} disabled={thisMonthAdded} style={{ ...secondaryBtn, flexShrink: 0, opacity: thisMonthAdded ? 0.5 : 1, cursor: thisMonthAdded ? 'default' : 'pointer' }}>
+                <Plus size={14} /> {thisMonthAdded ? `سررسید ${currentMonth} ثبت شده` : `سررسید ${currentMonth}`}
+              </button>
             </div>
           )}
           <form onSubmit={submit} style={{ display: 'flex', gap: 6, padding: 10, borderTop: `1px solid ${COLORS.line}`, alignItems: 'flex-end', flexWrap: 'wrap' }}>

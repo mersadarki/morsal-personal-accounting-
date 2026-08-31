@@ -34,7 +34,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [view, setView] = useState('home');
-  const [statsTab, setStatsTab] = useState('total');
+  const [statsTab, setStatsTab] = useState('monthly');
   const [statsYear, setStatsYear] = useState('');
   const [form, setForm] = useState(emptyForm());
   const [formError, setFormError] = useState('');
@@ -309,7 +309,7 @@ export default function App() {
   }
   function deleteDebtPerson(personId) { persistDebts(debts.filter((d) => d.id !== personId)); }
 
-  function addInstallmentPlan(name) { persistInstallments([...installments, { id: uid(installments), name, amount: null, entries: [] }]); }
+  function addInstallmentPlan(name, recurring) { persistInstallments([...installments, { id: uid(installments), name, amount: null, recurring: !!recurring, entries: [] }]); }
   function addInstallmentDate(planId, m, dt) {
     persistInstallments(installments.map((p) => {
       if (p.id !== planId) return p;
@@ -395,7 +395,7 @@ export default function App() {
 
         {view === 'installments' && (
           <InstallmentsView
-            installments={installments} onAddPlan={addInstallmentPlan} onAddDate={addInstallmentDate}
+            installments={installments} currentMonth={currentMonth} onAddPlan={addInstallmentPlan} onAddDate={addInstallmentDate}
             onTogglePaid={toggleInstallmentPaid} onDeleteDate={deleteInstallmentDate} onDeletePlan={deleteInstallmentPlan}
           />
         )}
