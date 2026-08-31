@@ -25,18 +25,44 @@ export function monthInfo(raw0) {
   return { year, idx, sortKey, label: raw || 'نامشخص' };
 }
 
-// amounts stored in "hezar toman" units; displayed with Persian digits, grouped by ٫
+// amounts stored in "hezar toman" units; displayed with Persian digits,
+// grouped by ٬ (the actual Arabic thousands separator — ٫ is a decimal
+// point and reads as one, which is exactly what made a plain hezar-toman
+// number like ۲٫۴۴۷ look like "2.447" instead of "2,447").
 export function fmt(n) {
   if (n == null || isNaN(n)) return '۰';
   const rounded = Math.round(n);
   const neg = rounded < 0;
-  const grouped = Math.abs(rounded).toLocaleString('en-US').replace(/,/g, '٫');
+  const grouped = Math.abs(rounded).toLocaleString('en-US').replace(/,/g, '٬');
   return (neg ? '-' : '') + toFaDigits(grouped);
 }
-// Short unit tag ("هزار ت") — every stored amount is in hezar-toman, but
-// that's easy to lose track of on a bare number, so this gets appended
-// next to displayed amounts throughout the app.
+// Short unit tag ("هزار ت") — used only as an inline suffix inside the
+// amount *input* field, where the value is always literally hezar-toman
+// because that's what the user is typing.
 export const UNIT_TAG = 'هزار ت';
+
+// Adaptive magnitude formatter for *displayed* money: scales a hezar-toman
+// amount up to هزار/میلیون/میلیارد تومان — whichever keeps the number
+// small — instead of a long digit string whose real-world scale is easy
+// to misjudge. Every stored amount is a whole number of hezar-toman, so
+// scaling to هزار or میلیون تومان is always exact; only میلیارد-scale
+// totals round to 3 decimals, which is still precise to the nearest
+// ~million toman — plenty to catch a wrong digit at a glance.
+export function fmtUnit(n) {
+  if (n == null || isNaN(n) || n === 0) return { text: '۰', unit: 'هزار تومان' };
+  const toman = n * 1000;
+  const abs = Math.abs(toman);
+  let divisor = 1000, unit = 'هزار تومان';
+  if (abs >= 1e9) { divisor = 1e9; unit = 'میلیارد تومان'; }
+  else if (abs >= 1e6) { divisor = 1e6; unit = 'میلیون تومان'; }
+  const scaled = Math.round((toman / divisor) * 1000) / 1000;
+  const neg = scaled < 0;
+  const absScaled = Math.abs(scaled);
+  const [intPart, decPart] = String(absScaled).split('.');
+  const groupedInt = toFaDigits(Number(intPart).toLocaleString('en-US').replace(/,/g, '٬'));
+  const text = (neg ? '-' : '') + groupedInt + (decPart ? '٫' + toFaDigits(decPart) : '');
+  return { text, unit };
+}
 
 export function uid(list) { return list.reduce((m, r) => Math.max(m, r.id || 0), 0) + 1; }
 
@@ -91,11 +117,13 @@ export function describeAmount(str) {
   const n = parseMoneyShorthand(str);
   if (isNaN(n) || n === 0) return '';
   const abs = Math.round(Math.abs(n));
-  const million = Math.floor(abs / 1000);
+  const billion = Math.floor(abs / 1000000);
+  const million = Math.floor((abs % 1000000) / 1000);
   const thousand = abs % 1000;
   const words = [];
+  if (billion > 0) words.push(`${toFaDigits(billion)} میلیارد`);
   if (million > 0) words.push(`${toFaDigits(million)} میلیون`);
   if (thousand > 0) words.push(`${toFaDigits(thousand)} هزار`);
-  const fullToman = (Math.abs(n) * 1000).toLocaleString('en-US').replace(/,/g, '٫');
+  const fullToman = (Math.abs(n) * 1000).toLocaleString('en-US').replace(/,/g, '٬');
   return `${n < 0 ? '−' : ''}${toFaDigits(fullToman)} تومان (${words.join(' و ')} تومان)`;
 }

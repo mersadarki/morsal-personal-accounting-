@@ -1,5 +1,5 @@
 import { COLORS } from './constants';
-import { describeAmount, UNIT_TAG } from './format';
+import { describeAmount, fmtUnit, UNIT_TAG } from './format';
 
 export const fontStyle = { fontFamily: "'Vazirmatn', sans-serif" };
 export const displayStyle = { fontFamily: "'Lalezar', cursive" };
@@ -27,10 +27,17 @@ export function AmountPreview({ value }) {
   return <div style={{ fontSize: 11, color: COLORS.brassDark, marginTop: 3 }}>= {text}</div>;
 }
 
-// Small unit tag appended next to every displayed amount so it's always
-// clear this is hezar-toman, not toman or a bigger/smaller unit.
-export function UnitTag() {
-  return <span style={{ fontSize: '0.7em', fontWeight: 500, color: COLORS.inkLight, marginRight: 3 }}>{UNIT_TAG}</span>;
+// Displays a money value scaled to its own natural unit (هزار/میلیون/
+// میلیارد تومان) so its real-world magnitude is legible at a glance,
+// instead of a long hezar-toman digit string next to a fixed "هزار ت"
+// tag that made every number look smaller than it actually was.
+export function Amount({ value }) {
+  const { text, unit } = fmtUnit(value);
+  return (
+    <>
+      {text} <span style={{ fontSize: '0.72em', fontWeight: 500, opacity: 0.72 }}>{unit}</span>
+    </>
+  );
 }
 
 // Amount input with the unit tag baked in as an inline suffix inside the

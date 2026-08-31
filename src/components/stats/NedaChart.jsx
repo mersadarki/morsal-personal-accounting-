@@ -1,6 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { COLORS } from '../../lib/constants';
-import { fmt } from '../../lib/format';
+import { fmtUnit } from '../../lib/format';
 
 export default function NedaChart({ data }) {
   return (
@@ -12,7 +12,7 @@ export default function NedaChart({ data }) {
             <CartesianGrid strokeDasharray="3 3" stroke={COLORS.line} />
             <XAxis dataKey="label" tick={{ fontSize: 8, fill: COLORS.inkLight }} angle={-35} textAnchor="end" height={50} />
             <YAxis tick={{ fontSize: 9, fill: COLORS.inkLight }} width={30} />
-            <Tooltip formatter={(v) => fmt(v)} contentStyle={{ fontFamily: 'Vazirmatn', fontSize: 11, direction: 'rtl' }} />
+            <Tooltip formatter={(v) => { const a = fmtUnit(v); return `${a.text} ${a.unit}`; }} contentStyle={{ fontFamily: 'Vazirmatn', fontSize: 11, direction: 'rtl' }} />
             <Bar dataKey="amount" fill={COLORS.expense} radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

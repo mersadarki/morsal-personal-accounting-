@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Trash2, Plus, Pencil, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
-import { fmt, parseMoneyShorthand } from '../../lib/format';
-import { inputStyle, iconBtn, secondaryBtn, AmountPreview, UnitTag } from '../../lib/ui.jsx';
+import { parseMoneyShorthand } from '../../lib/format';
+import { inputStyle, iconBtn, secondaryBtn, AmountPreview, Amount } from '../../lib/ui.jsx';
 
 function EntryRow({ entry, debtId, onEditEntry, onDeleteEntry }) {
   const [editing, setEditing] = useState(false);
@@ -43,7 +43,7 @@ function EntryRow({ entry, debtId, onEditEntry, onDeleteEntry }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderTop: `1px solid ${COLORS.line}` }}>
       <div style={{ flex: 1, fontSize: 12.5, color: COLORS.inkLight }}>{entry.note || '—'}</div>
       <div className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: entry.delta >= 0 ? COLORS.income : COLORS.expense }}>
-        {entry.delta >= 0 ? '+' : ''}{fmt(entry.delta)}<UnitTag />
+        {entry.delta >= 0 ? '+' : ''}<Amount value={entry.delta} />
       </div>
       <button onClick={startEdit} style={iconBtn(COLORS.brassDark)}><Pencil size={12} /></button>
       <button onClick={() => onDeleteEntry(debtId, entry.id)} style={iconBtn(COLORS.expense)}><Trash2 size={12} /></button>
@@ -86,7 +86,7 @@ export default function DebtCard({ debt, onAddEntries, onEditEntry, onDeleteEntr
           <div style={{ fontWeight: 700, fontSize: 14 }}>{debt.person}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div className="tabular" style={{ fontWeight: 800, fontSize: 14, color: total >= 0 ? COLORS.income : COLORS.expense }}>{fmt(total)}<UnitTag /></div>
+          <div className="tabular" style={{ fontWeight: 800, fontSize: 14, color: total >= 0 ? COLORS.income : COLORS.expense }}><Amount value={total} /></div>
           <span role="button" tabIndex={0} aria-label="حذف شخص" onClick={(e) => { e.stopPropagation(); onDeletePerson(debt.id); }} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></span>
         </div>
       </button>

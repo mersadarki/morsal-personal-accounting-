@@ -1,7 +1,7 @@
 import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { ACCOUNT_LABELS, INCOME_CAT_LABELS, COLORS } from '../../lib/constants';
-import { fmt, toFaDigits } from '../../lib/format';
-import { iconBtn, nedaBadge, secondaryBtn, UnitTag } from '../../lib/ui.jsx';
+import { toFaDigits } from '../../lib/format';
+import { iconBtn, nedaBadge, secondaryBtn, Amount } from '../../lib/ui.jsx';
 
 export default function TransactionList({
   type, monthLabel, rows, visibleCount, onShowMore, saving,
@@ -34,7 +34,7 @@ export default function TransactionList({
                 </div>
               </div>
               <div className="tabular" style={{ fontWeight: 700, fontSize: 13, color: isExpense ? COLORS.expense : COLORS.income, whiteSpace: 'nowrap' }}>
-                {isExpense ? '−' : '+'}{fmt(r.a)}<UnitTag />
+                {isExpense ? '−' : '+'}<Amount value={r.a} />
               </div>
               {confirmDeleteId === r.id ? (
                 <div style={{ display: 'flex', gap: 4 }}>
