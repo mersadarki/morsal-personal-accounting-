@@ -71,13 +71,6 @@ export default function EntryForm({ form, setForm, formError, editingId, titleSu
           قرض — نه هزینه نه درآمد، فقط موجودی حساب رو تغییر بده
         </label>
       </div>
-      {form.t === 'i' && form.cat === 'vpn' && (
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, cursor: 'pointer', fontSize: 12.5 }}>
-          <input type="checkbox" checked={form.personalVpn} onChange={(e) => setForm((f) => ({ ...f, personalVpn: e.target.checked }))} />
-          هزینه شخصی وی‌پی‌ان — از درآمد کم شود
-        </label>
-      )}
-
       {form.t === 'e' && (
         <>
           <FieldLabel>{form.neda ? 'عنوان هزینه ندا (مثلاً: بیمارستان، کارگر)' : 'عنوان (اختیاری — مثلاً: قسط، جابجایی)'}</FieldLabel>

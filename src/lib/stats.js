@@ -4,7 +4,7 @@ import { isExcludedExpenseTitle, isInstallmentTitle, isVpnPartnerTitle } from '.
 // کل / سالانه / ماهانه granularities).
 export function computeStatsRows(rows) {
   let totalExpense = 0, nedaExpense = 0, installments = 0;
-  let kapitan = 0, khadamat = 0, vpnGross = 0, vpnExcluded = 0, vpnPartnerPayout = 0;
+  let kapitan = 0, khadamat = 0, vpnGross = 0, vpnPartnerPayout = 0;
   rows.forEach((r) => {
     if (r.t === 'e') {
       // Tracked regardless of the exclusion below, since vpnNet needs it.
@@ -20,15 +20,14 @@ export function computeStatsRows(rows) {
       if (r.cat === 'transfer' || r.transfer || r.loan) return;
       if (r.cat === 'kapitan') kapitan += r.a || 0;
       else if (r.cat === 'khadamat') khadamat += r.a || 0;
-      else if (r.cat === 'vpn') { vpnGross += r.a || 0; if (r.personalVpn) vpnExcluded += r.a || 0; }
+      else if (r.cat === 'vpn') vpnGross += r.a || 0;
     }
   });
-  // Net vpn income = total vpn-category income, minus any income rows
-  // flagged «هزینه شخصی وی‌پی‌ان», minus what's paid out to امیر/وحید
-  // (the vpn resale partners — recorded as expense rows titled with their
-  // name, e.g. "امیر" or "امیر - ..."), since that payout is a cost of the
-  // vpn income, not personal spending.
-  const vpnNet = vpnGross - vpnExcluded - vpnPartnerPayout;
+  // Net vpn income = total vpn-category income, minus what's paid out to
+  // امیر/وحید (the vpn resale partners — recorded as expense rows titled
+  // with their name), since that payout is a cost of the vpn income, not
+  // personal spending.
+  const vpnNet = vpnGross - vpnPartnerPayout;
   const selfExpenseTotal = totalExpense - nedaExpense;
   const personalExpense = selfExpenseTotal - installments;
   const incomeTotal = kapitan + vpnNet + khadamat;

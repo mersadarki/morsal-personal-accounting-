@@ -22,7 +22,7 @@ import SettingsView from './components/settings/SettingsView';
 import BalanceFormModal from './components/settings/BalanceFormModal';
 
 const emptyBalForm = { month: '', 'ملی': '', 'ویپاد': '', 'اعتبار ملی': '', 'نقدی': '', 'دلار': '' };
-function emptyForm() { return { t: 'e', acc: 'ملی', a: '', ti: '', neda: false, transfer: false, loan: false, cat: 'vpn', personalVpn: false, dt: String(todayDay()) }; }
+function emptyForm() { return { t: 'e', acc: 'ملی', a: '', ti: '', neda: false, transfer: false, loan: false, cat: 'vpn', dt: String(todayDay()) }; }
 const DEFAULT_MONTH = 'شهریور ۱۴۰۵';
 
 export default function App() {
@@ -180,7 +180,7 @@ export default function App() {
 
   function openAdd() { setForm((f) => ({ ...emptyForm(), t: f.t })); setEditingId(null); setFormError(''); }
   function openEdit(r) {
-    setForm({ t: r.t, acc: r.acc, a: String(r.a), ti: r.ti || '', neda: !!r.neda, transfer: !!r.transfer, loan: !!r.loan, cat: r.cat || 'vpn', personalVpn: !!r.personalVpn, dt: r.dt != null ? String(r.dt) : String(todayDay()) });
+    setForm({ t: r.t, acc: r.acc, a: String(r.a), ti: r.ti || '', neda: !!r.neda, transfer: !!r.transfer, loan: !!r.loan, cat: r.cat || 'vpn', dt: r.dt != null ? String(r.dt) : String(todayDay()) });
     setEditingId(r.id); setFormError('');
     if (r.m && r.m !== currentMonth) persistMonth(r.m);
     setView('home');
@@ -201,11 +201,11 @@ export default function App() {
     const base = { acc: form.acc, a: amt, m: currentMonth, dt: (dtVal && !isNaN(dtVal)) ? dtVal : null, transfer: form.transfer, loan: form.loan };
 
     if (form.t === 'i') {
-      const rec = { ...base, t: 'i', ti: '', cat: form.cat, personalVpn: form.cat === 'vpn' ? form.personalVpn : false };
+      const rec = { ...base, t: 'i', ti: '', cat: form.cat };
       if (editingId != null) {
         persistTx(tx.map((r) => (r.id === editingId ? { ...rec, id: editingId } : r)));
       } else {
-        const matchIdx = tx.findIndex((r) => r.t === 'i' && r.m === currentMonth && r.dt === rec.dt && r.acc === rec.acc && r.cat === rec.cat && !!r.personalVpn === !!rec.personalVpn && !r.transfer && !r.loan);
+        const matchIdx = tx.findIndex((r) => r.t === 'i' && r.m === currentMonth && r.dt === rec.dt && r.acc === rec.acc && r.cat === rec.cat && !r.transfer && !r.loan);
         if (matchIdx > -1 && !form.transfer && !form.loan) {
           const next = tx.map((r, i) => (i === matchIdx ? { ...r, a: (r.a || 0) + amt } : r));
           persistTx(next);
@@ -257,11 +257,11 @@ export default function App() {
 
     const amt = 500;
     const dt = todayDay();
-    const matchIdx = tx.findIndex((r) => r.t === 'i' && r.m === currentMonth && r.dt === dt && r.acc === account && r.cat === 'vpn' && !r.personalVpn);
+    const matchIdx = tx.findIndex((r) => r.t === 'i' && r.m === currentMonth && r.dt === dt && r.acc === account && r.cat === 'vpn');
     if (matchIdx > -1) {
       persistTx(tx.map((r, i) => (i === matchIdx ? { ...r, a: (r.a || 0) + amt } : r)));
     } else {
-      persistTx([...tx, { t: 'i', m: currentMonth, dt, acc: account, a: amt, ti: '', cat: 'vpn', personalVpn: false, id: uid(tx) }]);
+      persistTx([...tx, { t: 'i', m: currentMonth, dt, acc: account, a: amt, ti: '', cat: 'vpn', id: uid(tx) }]);
     }
   }
 

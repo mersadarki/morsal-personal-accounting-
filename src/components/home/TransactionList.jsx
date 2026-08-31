@@ -26,7 +26,6 @@ export default function TransactionList({
                     {isExpense ? (r.ti || 'بدون عنوان') : INCOME_CAT_LABELS[r.cat]}
                   </div>
                   {isExpense && r.neda && <span style={nedaBadge}>N</span>}
-                  {!isExpense && r.personalVpn && <span style={nedaBadge}>شخصی</span>}
                   {r.transfer && <span style={nedaBadge}>جابجایی</span>}
                   {r.loan && <span style={nedaBadge}>قرض</span>}
                 </div>
