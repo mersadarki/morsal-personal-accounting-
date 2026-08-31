@@ -263,6 +263,7 @@ export default function App() {
     } else {
       persistTx([...tx, { t: 'i', m: currentMonth, dt, acc: account, a: amt, ti: '', cat: 'vpn', id: uid(tx) }]);
     }
+    setForm((f) => ({ ...f, t: 'i' }));
   }
 
   function addDebtPerson(name) { persistDebts([...debts, { id: uid(debts), person: name, entries: [] }]); }
