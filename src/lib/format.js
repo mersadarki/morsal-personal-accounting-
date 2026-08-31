@@ -36,11 +36,24 @@ export function fmt(n) {
 
 export function uid(list) { return list.reduce((m, r) => Math.max(m, r.id || 0), 0) + 1; }
 
-export function isTransferExpenseTitle(title) { return (title || '').trim() === 'جابجایی'; }
-export function isInstallmentTitle(title) { return (title || '').trim().indexOf('قسط') === 0; }
+export function isTransferExpenseTitle(title) { return (title || '').trim().indexOf('جابجایی') > -1; }
+export function isInstallmentTitle(title) { return (title || '').trim().indexOf('قسط') > -1; }
 export function isVpnPartnerTitle(title) {
   const t = (title || '').trim();
-  return t.indexOf('امیر') === 0 || t.indexOf('وحید') === 0;
+  return t === 'امیر' || t === 'وحید';
+}
+// Titles the user's own spreadsheet formula excludes from «کل هزینه»:
+// جابجایی (internal transfer), امیر/وحید (vpn resale partner payout),
+// «vpn new» (cost of the vpn-new scheme), قرض-titled (loans, not spending),
+// and blank titles (bookkeeping placeholders).
+export function isExcludedExpenseTitle(title) {
+  const t = (title || '').trim();
+  if (t === '') return true;
+  if (t === 'vpn new') return true;
+  if (isVpnPartnerTitle(t)) return true;
+  if (t.indexOf('قرض') > -1) return true;
+  if (isTransferExpenseTitle(t)) return true;
+  return false;
 }
 
 export function jalaliToMonthLabel({ jy, jm }) { return `${MONTHS[jm - 1]} ${toFaDigits(jy)}`; }

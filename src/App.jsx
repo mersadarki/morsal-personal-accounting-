@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { COLORS } from './lib/constants';
-import { toEnglishDigits, monthInfo, uid, isTransferExpenseTitle, toFaDigits, jalaliToMonthLabel } from './lib/format';
+import { toEnglishDigits, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel } from './lib/format';
 import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
@@ -151,7 +151,7 @@ export default function App() {
 
   const dailyChartData = useMemo(() => {
     const days = Array.from({ length: 31 }, (_, i) => ({ day: toFaDigits(i + 1), amount: 0 }));
-    tx.filter((r) => r.m === statsMonth && r.t === 'e' && !isTransferExpenseTitle(r.ti) && r.dt).forEach((r) => {
+    tx.filter((r) => r.m === statsMonth && r.t === 'e' && !isExcludedExpenseTitle(r.ti) && r.dt).forEach((r) => {
       const idx = r.dt - 1;
       if (idx >= 0 && idx < 31) days[idx].amount += r.a || 0;
     });
@@ -159,7 +159,7 @@ export default function App() {
   }, [tx, statsMonth]);
 
   const nedaBreakdown = useMemo(() => {
-    const nedaRows = tx.filter((r) => r.t === 'e' && r.neda && !isTransferExpenseTitle(r.ti));
+    const nedaRows = tx.filter((r) => r.t === 'e' && r.neda && !isExcludedExpenseTitle(r.ti));
     const byYear = new Map();
     nedaRows.forEach((r) => {
       const info = monthInfo(r.m);

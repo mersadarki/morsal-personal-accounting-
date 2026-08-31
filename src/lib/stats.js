@@ -1,4 +1,4 @@
-import { isTransferExpenseTitle, isInstallmentTitle, isVpnPartnerTitle } from './format';
+import { isExcludedExpenseTitle, isInstallmentTitle, isVpnPartnerTitle } from './format';
 
 // Business-rule formulas, computable over an arbitrary row-set (used at
 // کل / سالانه / ماهانه granularities).
@@ -7,11 +7,12 @@ export function computeStatsRows(rows) {
   let kapitan = 0, khadamat = 0, vpnGross = 0, vpnExcluded = 0, vpnPartnerPayout = 0;
   rows.forEach((r) => {
     if (r.t === 'e') {
-      if (isTransferExpenseTitle(r.ti)) return;
+      // Tracked regardless of the exclusion below, since vpnNet needs it.
+      if (isVpnPartnerTitle(r.ti)) vpnPartnerPayout += r.a || 0;
+      if (isExcludedExpenseTitle(r.ti)) return;
       totalExpense += r.a || 0;
       if (r.neda) nedaExpense += r.a || 0;
       if (isInstallmentTitle(r.ti)) installments += r.a || 0;
-      if (isVpnPartnerTitle(r.ti)) vpnPartnerPayout += r.a || 0;
     } else {
       if (r.cat === 'transfer') return;
       if (r.cat === 'kapitan') kapitan += r.a || 0;
