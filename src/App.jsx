@@ -22,7 +22,7 @@ import SettingsView from './components/settings/SettingsView';
 import BalanceFormModal from './components/settings/BalanceFormModal';
 
 const emptyBalForm = { month: '', 'ملی': '', 'ویپاد': '', 'اعتبار ملی': '', 'نقدی': '', 'دلار': '' };
-function emptyForm() { return { t: 'e', acc: 'ملی', a: '', ti: '', neda: false, transfer: false, loan: false, cat: 'vpn', dt: String(todayDay()) }; }
+function emptyForm() { return { t: 'i', acc: 'ملی', a: '', ti: '', neda: false, transfer: false, loan: false, cat: 'vpn', dt: String(todayDay()) }; }
 const DEFAULT_MONTH = 'شهریور ۱۴۰۵';
 
 export default function App() {
