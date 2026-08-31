@@ -55,12 +55,22 @@ export default function EntryForm({ form, setForm, formError, editingId, titleSu
         )}
       </div>
 
-      {form.t === 'e' && (
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, cursor: 'pointer', fontSize: 13 }}>
-          <input type="checkbox" checked={form.neda} onChange={(e) => setForm((f) => ({ ...f, neda: e.target.checked }))} />
-          N
+      <div style={{ display: 'flex', gap: 14, marginBottom: 10, flexWrap: 'wrap' }}>
+        {form.t === 'e' && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+            <input type="checkbox" checked={form.neda} onChange={(e) => setForm((f) => ({ ...f, neda: e.target.checked }))} />
+            N
+          </label>
+        )}
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12.5 }}>
+          <input type="checkbox" checked={form.transfer} onChange={(e) => setForm((f) => ({ ...f, transfer: e.target.checked, loan: e.target.checked ? false : f.loan }))} />
+          جابجایی — نه هزینه نه درآمد، فقط موجودی حساب رو تغییر بده
         </label>
-      )}
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12.5 }}>
+          <input type="checkbox" checked={form.loan} onChange={(e) => setForm((f) => ({ ...f, loan: e.target.checked, transfer: e.target.checked ? false : f.transfer }))} />
+          قرض — نه هزینه نه درآمد، فقط موجودی حساب رو تغییر بده
+        </label>
+      </div>
       {form.t === 'i' && form.cat === 'vpn' && (
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, cursor: 'pointer', fontSize: 12.5 }}>
           <input type="checkbox" checked={form.personalVpn} onChange={(e) => setForm((f) => ({ ...f, personalVpn: e.target.checked }))} />

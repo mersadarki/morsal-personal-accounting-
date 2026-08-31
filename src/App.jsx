@@ -22,7 +22,7 @@ import SettingsView from './components/settings/SettingsView';
 import BalanceFormModal from './components/settings/BalanceFormModal';
 
 const emptyBalForm = { month: '', 'ملی': '', 'ویپاد': '', 'اعتبار ملی': '', 'نقدی': '', 'دلار': '' };
-function emptyForm() { return { t: 'e', acc: 'ملی', a: '', ti: '', neda: false, cat: 'vpn', personalVpn: false, dt: String(todayDay()) }; }
+function emptyForm() { return { t: 'e', acc: 'ملی', a: '', ti: '', neda: false, transfer: false, loan: false, cat: 'vpn', personalVpn: false, dt: String(todayDay()) }; }
 const DEFAULT_MONTH = 'شهریور ۱۴۰۵';
 
 export default function App() {
@@ -151,7 +151,7 @@ export default function App() {
 
   const dailyChartData = useMemo(() => {
     const days = Array.from({ length: 31 }, (_, i) => ({ day: toFaDigits(i + 1), amount: 0 }));
-    tx.filter((r) => r.m === statsMonth && r.t === 'e' && !isExcludedExpenseTitle(r.ti) && r.dt).forEach((r) => {
+    tx.filter((r) => r.m === statsMonth && r.t === 'e' && !r.transfer && !r.loan && !isExcludedExpenseTitle(r.ti) && r.dt).forEach((r) => {
       const idx = r.dt - 1;
       if (idx >= 0 && idx < 31) days[idx].amount += r.a || 0;
     });
@@ -159,7 +159,7 @@ export default function App() {
   }, [tx, statsMonth]);
 
   const nedaBreakdown = useMemo(() => {
-    const nedaRows = tx.filter((r) => r.t === 'e' && r.neda && !isExcludedExpenseTitle(r.ti));
+    const nedaRows = tx.filter((r) => r.t === 'e' && r.neda && !r.transfer && !r.loan && !isExcludedExpenseTitle(r.ti));
     const byYear = new Map();
     nedaRows.forEach((r) => {
       const info = monthInfo(r.m);
@@ -180,35 +180,47 @@ export default function App() {
 
   function openAdd() { setForm((f) => ({ ...emptyForm(), t: f.t })); setEditingId(null); setFormError(''); }
   function openEdit(r) {
-    setForm({ t: r.t, acc: r.acc, a: String(r.a), ti: r.ti || '', neda: !!r.neda, cat: r.cat || 'vpn', personalVpn: !!r.personalVpn, dt: r.dt != null ? String(r.dt) : String(todayDay()) });
+    setForm({ t: r.t, acc: r.acc, a: String(r.a), ti: r.ti || '', neda: !!r.neda, transfer: !!r.transfer, loan: !!r.loan, cat: r.cat || 'vpn', personalVpn: !!r.personalVpn, dt: r.dt != null ? String(r.dt) : String(todayDay()) });
     setEditingId(r.id); setFormError('');
     if (r.m && r.m !== currentMonth) persistMonth(r.m);
     setView('home');
   }
+  function adjustBalance(account, delta) {
+    const current = balances[currentMonth] || {};
+    const latest = latestBalances ? latestBalances.vals : {};
+    const baseline = current[account] != null ? current[account] : (latest[account] != null ? latest[account] : 0);
+    const nextEntry = { ...latest, ...current, [account]: baseline + delta };
+    persistBalances({ ...balances, [currentMonth]: nextEntry });
+  }
+
   function submitForm(e) {
     e.preventDefault();
     const amt = parseFloat(toEnglishDigits(form.a));
     if (isNaN(amt) || amt <= 0) { setFormError('مبلغ را درست وارد کنید.'); return; }
     const dtVal = form.dt ? parseInt(toEnglishDigits(String(form.dt)), 10) : null;
-    const base = { acc: form.acc, a: amt, m: currentMonth, dt: (dtVal && !isNaN(dtVal)) ? dtVal : null };
+    const base = { acc: form.acc, a: amt, m: currentMonth, dt: (dtVal && !isNaN(dtVal)) ? dtVal : null, transfer: form.transfer, loan: form.loan };
 
     if (form.t === 'i') {
       const rec = { ...base, t: 'i', ti: '', cat: form.cat, personalVpn: form.cat === 'vpn' ? form.personalVpn : false };
       if (editingId != null) {
         persistTx(tx.map((r) => (r.id === editingId ? { ...rec, id: editingId } : r)));
       } else {
-        const matchIdx = tx.findIndex((r) => r.t === 'i' && r.m === currentMonth && r.dt === rec.dt && r.acc === rec.acc && r.cat === rec.cat && !!r.personalVpn === !!rec.personalVpn);
-        if (matchIdx > -1) {
+        const matchIdx = tx.findIndex((r) => r.t === 'i' && r.m === currentMonth && r.dt === rec.dt && r.acc === rec.acc && r.cat === rec.cat && !!r.personalVpn === !!rec.personalVpn && !r.transfer && !r.loan);
+        if (matchIdx > -1 && !form.transfer && !form.loan) {
           const next = tx.map((r, i) => (i === matchIdx ? { ...r, a: (r.a || 0) + amt } : r));
           persistTx(next);
         } else {
           persistTx([...tx, { ...rec, id: uid(tx) }]);
         }
+        if (form.transfer || form.loan) adjustBalance(form.acc, amt);
       }
     } else {
       const rec = { ...base, t: 'e', ti: form.ti.trim(), neda: form.neda };
       if (editingId != null) persistTx(tx.map((r) => (r.id === editingId ? { ...rec, id: editingId } : r)));
-      else persistTx([...tx, { ...rec, id: uid(tx) }]);
+      else {
+        persistTx([...tx, { ...rec, id: uid(tx) }]);
+        if (form.transfer || form.loan) adjustBalance(form.acc, -amt);
+      }
     }
     setForm((f) => ({ ...emptyForm(), t: f.t }));
     setEditingId(null);
@@ -241,11 +253,7 @@ export default function App() {
   function handleDeleteBalance(month) { const next = { ...balances }; delete next[month]; persistBalances(next); setConfirmDeleteBal(null); }
 
   function quickAddBalance(account) {
-    const current = balances[currentMonth] || {};
-    const latest = latestBalances ? latestBalances.vals : {};
-    const baseline = current[account] != null ? current[account] : (latest[account] != null ? latest[account] : 0);
-    const nextEntry = { ...latest, ...current, [account]: baseline + 500 };
-    persistBalances({ ...balances, [currentMonth]: nextEntry });
+    adjustBalance(account, 500);
 
     const amt = 500;
     const dt = todayDay();

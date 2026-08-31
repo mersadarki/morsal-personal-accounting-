@@ -27,6 +27,8 @@ export default function TransactionList({
                   </div>
                   {isExpense && r.neda && <span style={nedaBadge}>N</span>}
                   {!isExpense && r.personalVpn && <span style={nedaBadge}>شخصی</span>}
+                  {r.transfer && <span style={nedaBadge}>جابجایی</span>}
+                  {r.loan && <span style={nedaBadge}>قرض</span>}
                 </div>
                 <div style={{ fontSize: 11, color: COLORS.inkLight }}>
                   {ACCOUNT_LABELS[r.acc] || r.acc}{r.dt ? ` · روز ${toFaDigits(r.dt)}` : ''}
