@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { COLORS } from './lib/constants';
-import { toEnglishDigits, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel } from './lib/format';
+import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel } from './lib/format';
 import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
@@ -195,7 +195,7 @@ export default function App() {
 
   function submitForm(e) {
     e.preventDefault();
-    const amt = parseFloat(toEnglishDigits(form.a));
+    const amt = parseMoneyShorthand(form.a);
     if (isNaN(amt) || amt <= 0) { setFormError('مبلغ را درست وارد کنید.'); return; }
     const dtVal = form.dt ? parseInt(toEnglishDigits(String(form.dt)), 10) : null;
     const base = { acc: form.acc, a: amt, m: currentMonth, dt: (dtVal && !isNaN(dtVal)) ? dtVal : null, transfer: form.transfer, loan: form.loan };
@@ -241,8 +241,8 @@ export default function App() {
     const entry = {};
     Object.keys(emptyBalForm).forEach((a) => {
       if (a === 'month') return;
-      const raw = toEnglishDigits(String(balForm[a] || '').trim());
-      if (raw !== '') { const n = parseFloat(raw); if (!isNaN(n)) entry[a] = n; }
+      const raw = String(balForm[a] || '').trim();
+      if (raw !== '') { const n = parseMoneyShorthand(raw); if (!isNaN(n)) entry[a] = n; }
     });
     const next = { ...balances };
     if (editingBalMonth != null && editingBalMonth !== month) delete next[editingBalMonth];
