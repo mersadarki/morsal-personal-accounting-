@@ -1,5 +1,7 @@
-import { ACCOUNTS, ACCOUNT_LABELS, INCOME_CAT_LABELS } from './constants';
-import { toEnglishDigits } from './format';
+import { ACCOUNT_LABELS } from './constants';
+
+const APP_URL = 'https://mersadarki.github.io/morsal-personal-accounting-/';
+const REPO_URL = 'https://github.com/mersadarki/morsal-personal-accounting-';
 
 export function downloadBlob(content, filename, type) {
   const blob = new Blob([content], { type });
@@ -10,79 +12,55 @@ export function downloadBlob(content, filename, type) {
   URL.revokeObjectURL(url);
 }
 
-export async function exportExcel(tx, balances, monthInfo) {
+async function downloadSheet(rows, cols, sheetName, filename) {
   const XLSX = await import('xlsx');
-  const rows = [...tx].sort((a, b) => (monthInfo(a.m).sortKey < monthInfo(b.m).sortKey ? -1 : 1)).map((r, i) => ({
-    'ردیف': i + 1, 'ماه': r.m, 'روز': r.dt || '', 'نوع': r.t === 'e' ? 'هزینه' : 'درآمد',
-    'دسته': r.t === 'e' ? (r.neda ? 'ندا' : '') : INCOME_CAT_LABELS[r.cat] || '',
-    'حساب': ACCOUNT_LABELS[r.acc] || r.acc, 'عنوان': r.ti || '', 'مبلغ (هزار تومان)': r.a,
-  }));
   const ws = XLSX.utils.json_to_sheet(rows);
-  ws['!cols'] = [{ wch: 6 }, { wch: 16 }, { wch: 6 }, { wch: 8 }, { wch: 10 }, { wch: 12 }, { wch: 24 }, { wch: 14 }];
+  if (cols) ws['!cols'] = cols;
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'تراکنش‌ها');
-  const balRows = Object.entries(balances).map(([m, b]) => ({ 'ماه': m, ...b }));
-  const ws2 = XLSX.utils.json_to_sheet(balRows);
-  XLSX.utils.book_append_sheet(wb, ws2, 'موجودی پایان ماه');
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
   const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-  downloadBlob(wbout, 'دفتر-حساب.xlsx', 'application/octet-stream');
+  downloadBlob(wbout, filename, 'application/octet-stream');
 }
 
-export function downloadBackup(tx, balances, currentMonth) {
-  const payload = { version: 1, exportedAt: new Date().toISOString(), tx, balances, currentMonth };
-  downloadBlob(JSON.stringify(payload, null, 2), `پشتیبان-دفتر-حساب-${Date.now()}.json`, 'application/json');
+export function exportOwnExpenses(tx, monthInfo) {
+  const rows = tx.filter((r) => r.t === 'e' && !r.neda).slice().sort((a, b) => (monthInfo(a.m).sortKey < monthInfo(b.m).sortKey ? -1 : 1)).map((r, i) => ({
+    'ردیف': i + 1, 'ماه': r.m, 'روز': r.dt || '', 'حساب': ACCOUNT_LABELS[r.acc] || r.acc, 'عنوان': r.ti || '', 'مبلغ (هزار تومان)': r.a,
+  }));
+  return downloadSheet(rows, [{ wch: 6 }, { wch: 16 }, { wch: 6 }, { wch: 12 }, { wch: 24 }, { wch: 14 }], 'هزینه خودم', 'هزینه-خودم.xlsx');
 }
 
-export function readSheet(file, cb) {
-  const reader = new FileReader();
-  reader.onload = async (evt) => {
-    try {
-      const XLSX = await import('xlsx');
-      const wb = XLSX.read(evt.target.result, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      cb(null, XLSX.utils.sheet_to_json(ws, { defval: '' }));
-    } catch (err) { cb(err); }
+export function exportNedaExpenses(tx, monthInfo) {
+  const rows = tx.filter((r) => r.t === 'e' && r.neda).slice().sort((a, b) => (monthInfo(a.m).sortKey < monthInfo(b.m).sortKey ? -1 : 1)).map((r, i) => ({
+    'ردیف': i + 1, 'ماه': r.m, 'روز': r.dt || '', 'حساب': ACCOUNT_LABELS[r.acc] || r.acc, 'عنوان': r.ti || '', 'مبلغ (هزار تومان)': r.a,
+  }));
+  return downloadSheet(rows, [{ wch: 6 }, { wch: 16 }, { wch: 6 }, { wch: 12 }, { wch: 24 }, { wch: 14 }], 'هزینه ندا', 'هزینه-ندا.xlsx');
+}
+
+export function exportDebts(debts) {
+  const rows = [];
+  debts.forEach((d) => {
+    let total = 0;
+    d.entries.forEach((e) => { total += e.delta || 0; rows.push({ 'شخص': d.person, 'یادداشت': e.note || '', 'مبلغ (+/-)': e.delta }); });
+    rows.push({ 'شخص': d.person, 'یادداشت': 'جمع', 'مبلغ (+/-)': total });
+  });
+  return downloadSheet(rows, [{ wch: 16 }, { wch: 30 }, { wch: 14 }], 'بدهی', 'بدهی.xlsx');
+}
+
+export function exportInstallments(installments) {
+  const rows = [];
+  installments.forEach((p) => {
+    p.entries.forEach((e) => { rows.push({ 'نام': p.name, 'ماه': e.m, 'روز': e.dt, 'وضعیت': e.paid ? 'پرداخت‌شده' : 'پرداخت‌نشده' }); });
+  });
+  return downloadSheet(rows, [{ wch: 16 }, { wch: 16 }, { wch: 6 }, { wch: 14 }], 'قسط', 'قسط.xlsx');
+}
+
+export function downloadBackup(tx, balances, debts, installments, currentMonth) {
+  const payload = {
+    version: 2,
+    exportedAt: new Date().toISOString(),
+    appUrl: APP_URL,
+    repoUrl: REPO_URL,
+    tx, balances, debts, installments, currentMonth,
   };
-  reader.readAsArrayBuffer(file);
-}
-
-export function parseNedaRows(rows) {
-  const news = [];
-  rows.forEach((row) => {
-    const m = String(row['ماه'] || '').trim();
-    const ti = String(row['عنوان'] || row['شرح'] || '').trim();
-    const accRaw = String(row['حساب'] || 'ملی').trim();
-    const acc = ACCOUNTS.indexOf(accRaw) > -1 ? accRaw : 'ملی';
-    const dtRaw = row['روز'];
-    const dt = dtRaw !== '' && dtRaw != null ? parseInt(toEnglishDigits(String(dtRaw)), 10) : null;
-    const a = parseFloat(toEnglishDigits(String(row['مبلغ'])));
-    if (m && !isNaN(a) && a > 0) news.push({ m, t: 'e', acc, a, ti, neda: true, dt: (dt && !isNaN(dt)) ? dt : null });
-  });
-  return news;
-}
-
-export function parseGeneralRows(rows) {
-  const news = [];
-  rows.forEach((row) => {
-    const m = String(row['ماه'] || '').trim();
-    const typeRaw = String(row['نوع'] || 'هزینه').trim();
-    const t = typeRaw === 'درآمد' ? 'i' : 'e';
-    const accRaw = String(row['حساب'] || 'ملی').trim();
-    const acc = ACCOUNTS.indexOf(accRaw) > -1 ? accRaw : 'ملی';
-    const dtRaw = row['روز'];
-    const dt = dtRaw !== '' && dtRaw != null ? parseInt(toEnglishDigits(String(dtRaw)), 10) : null;
-    const a = parseFloat(toEnglishDigits(String(row['مبلغ'])));
-    const ti = String(row['عنوان'] || '').trim();
-    if (!m || isNaN(a) || a <= 0) return;
-    if (t === 'e') news.push({ m, t, acc, a, ti, neda: false, dt: (dt && !isNaN(dt)) ? dt : null });
-    else {
-      const catLabel = String(row['دسته'] || '').trim();
-      let cat = 'vpn';
-      if (catLabel.indexOf('کاپیتان') > -1) cat = 'kapitan';
-      else if (catLabel.indexOf('خدمات') > -1) cat = 'khadamat';
-      else if (catLabel.indexOf('جابجایی') > -1) cat = 'transfer';
-      news.push({ m, t, acc, a, ti: '', cat, personalVpn: false, dt: (dt && !isNaN(dt)) ? dt : null });
-    }
-  });
-  return news;
+  downloadBlob(JSON.stringify(payload, null, 2), `پشتیبان-دفتر-حساب-${Date.now()}.json`, 'application/json');
 }

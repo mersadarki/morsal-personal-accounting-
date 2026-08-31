@@ -6,7 +6,7 @@ import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
 import { SEED_TX, SEED_BALANCES, SEED_DEBTS, SEED_INSTALLMENTS } from './lib/seed';
-import { downloadBackup, exportExcel, readSheet, parseNedaRows, parseGeneralRows } from './lib/io';
+import { downloadBackup, exportOwnExpenses, exportNedaExpenses, exportDebts, exportInstallments } from './lib/io';
 import { fontStyle } from './lib/ui.jsx';
 import { useAppUpdate } from './lib/useAppUpdate';
 
@@ -47,11 +47,7 @@ export default function App() {
   const [showBalForm, setShowBalForm] = useState(false);
   const [confirmDeleteBal, setConfirmDeleteBal] = useState(null);
   const [visibleCount, setVisibleCount] = useState(40);
-  const [importMsg1, setImportMsg1] = useState('');
-  const [importMsg2, setImportMsg2] = useState('');
   const [backupMsg, setBackupMsg] = useState('');
-  const nedaFileRef = useRef(null);
-  const genFileRef = useRef(null);
   const backupFileRef = useRef(null);
   const update = useAppUpdate();
 
@@ -288,8 +284,11 @@ export default function App() {
   }
   function deleteInstallmentPlan(planId) { persistInstallments(installments.filter((p) => p.id !== planId)); }
 
-  function handleExportExcel() { exportExcel(tx, balances, monthInfo); }
-  function handleDownloadBackup() { downloadBackup(tx, balances, currentMonth); }
+  function handleExportOwnExpenses() { exportOwnExpenses(tx, monthInfo); }
+  function handleExportNedaExpenses() { exportNedaExpenses(tx, monthInfo); }
+  function handleExportDebts() { exportDebts(debts); }
+  function handleExportInstallments() { exportInstallments(installments); }
+  function handleDownloadBackup() { downloadBackup(tx, balances, debts, installments, currentMonth); }
 
   function handleRestoreBackup(e) {
     const file = e.target.files && e.target.files[0];
@@ -302,43 +301,13 @@ export default function App() {
         if (!data || !Array.isArray(data.tx)) { setBackupMsg('فایل پشتیبان معتبر نیست.'); return; }
         persistTx(data.tx);
         if (data.balances) persistBalances(data.balances);
+        if (data.debts) persistDebts(data.debts);
+        if (data.installments) persistInstallments(data.installments);
         if (data.currentMonth) persistMonth(data.currentMonth);
         setBackupMsg('بازیابی با موفقیت انجام شد.');
       } catch { setBackupMsg('خطا در خواندن فایل پشتیبان.'); }
     };
     reader.readAsText(file);
-    e.target.value = '';
-  }
-
-  function handleImportNeda(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    setImportMsg1('در حال خواندن...');
-    readSheet(file, (err, rows) => {
-      if (err) { setImportMsg1('خطا در خواندن فایل.'); return; }
-      const news = parseNedaRows(rows);
-      if (news.length === 0) { setImportMsg1('ردیف معتبری پیدا نشد. ستون‌ها: ماه، روز، عنوان، حساب، مبلغ'); return; }
-      let nid = uid(tx);
-      const withIds = news.map((r) => ({ ...r, id: nid++ }));
-      persistTx([...tx, ...withIds]);
-      setImportMsg1(`${toFaDigits(withIds.length)} ردیف هزینه ندا اضافه شد.`);
-    });
-    e.target.value = '';
-  }
-
-  function handleImportGeneral(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    setImportMsg2('در حال خواندن...');
-    readSheet(file, (err, rows) => {
-      if (err) { setImportMsg2('خطا در خواندن فایل.'); return; }
-      const news = parseGeneralRows(rows);
-      if (news.length === 0) { setImportMsg2('ردیف معتبری پیدا نشد. ستون‌ها: ماه، روز، نوع، دسته(برای درآمد)، عنوان، حساب، مبلغ'); return; }
-      let nid = uid(tx);
-      const withIds = news.map((r) => ({ ...r, id: nid++ }));
-      persistTx([...tx, ...withIds]);
-      setImportMsg2(`${toFaDigits(withIds.length)} ردیف اضافه شد.`);
-    });
     e.target.value = '';
   }
 
@@ -402,9 +371,8 @@ export default function App() {
         {view === 'settings' && (
           <SettingsView
             onDownloadBackup={handleDownloadBackup} onRestoreBackup={handleRestoreBackup} backupMsg={backupMsg} backupFileRef={backupFileRef}
-            onExportExcel={handleExportExcel}
-            onImportNeda={handleImportNeda} importMsg1={importMsg1} nedaFileRef={nedaFileRef}
-            onImportGeneral={handleImportGeneral} importMsg2={importMsg2} genFileRef={genFileRef}
+            onExportOwnExpenses={handleExportOwnExpenses} onExportNedaExpenses={handleExportNedaExpenses}
+            onExportDebts={handleExportDebts} onExportInstallments={handleExportInstallments}
             balances={balances} onAddBalance={openAddBalance} onEditBalance={openEditBalance}
             confirmDeleteBal={confirmDeleteBal} setConfirmDeleteBal={setConfirmDeleteBal} onDeleteBalance={handleDeleteBalance}
             update={update}
