@@ -120,7 +120,7 @@ export default function App() {
   }, [tx, statsMonth]);
 
   const nedaBreakdown = useMemo(() => {
-    const nedaRows = tx.filter((r) => r.t === 'e' && r.neda);
+    const nedaRows = tx.filter((r) => r.t === 'e' && r.neda && !isTransferExpenseTitle(r.ti));
     const byYear = new Map();
     nedaRows.forEach((r) => {
       const info = monthInfo(r.m);
