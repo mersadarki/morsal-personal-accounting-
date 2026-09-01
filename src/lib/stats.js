@@ -13,8 +13,15 @@ export function computeStatsRows(rows) {
       if (isVpnNewExpenseTitle(r.ti)) vpnNewCost += r.a || 0;
       // جابجایی/قرض rows (flagged via checkbox, or the legacy title-based
       // detection for historical data) are neither income nor expense —
-      // they only ever nudge an account balance, handled elsewhere.
-      if (r.transfer || r.loan || isExcludedExpenseTitle(r.ti)) return;
+      // they only ever nudge an account balance, handled elsewhere. The
+      // title-text heuristic is scoped to non-neda rows only: it exists to
+      // match the main ledger's own exclusion formula for that sheet's
+      // column A, but Neda's expenses come from an entirely separate,
+      // itemized sheet whose free-text descriptions can legitimately
+      // contain "جابجایی"/"قرض" as ordinary words (e.g. "جابجایی و ضرر
+      // زیان") without meaning "skip this line" — applying that heuristic
+      // there silently dropped real Neda spending.
+      if (r.transfer || r.loan || (!r.neda && isExcludedExpenseTitle(r.ti))) return;
       totalExpense += r.a || 0;
       if (r.neda) nedaExpense += r.a || 0;
       if (isInstallmentTitle(r.ti)) installments += r.a || 0;
