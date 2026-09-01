@@ -159,6 +159,15 @@ export default function App() {
     return days;
   }, [tx, statsMonth]);
 
+  const dailyIncomeChartData = useMemo(() => {
+    const days = Array.from({ length: 31 }, (_, i) => ({ day: toFaDigits(i + 1), amount: 0 }));
+    tx.filter((r) => r.m === statsMonth && r.t === 'i' && !r.transfer && !r.loan && r.cat !== 'transfer' && r.dt).forEach((r) => {
+      const idx = r.dt - 1;
+      if (idx >= 0 && idx < 31) days[idx].amount += r.a || 0;
+    });
+    return days;
+  }, [tx, statsMonth]);
+
   const nedaBreakdown = useMemo(() => {
     const nedaRows = tx.filter((r) => r.t === 'e' && r.neda && !r.transfer && !r.loan && !isExcludedExpenseTitle(r.ti));
     const byYear = new Map();
@@ -482,7 +491,7 @@ export default function App() {
             statsYear={statsYear} setStatsYear={setStatsYear} yearOptions={yearOptions}
             statsMonth={statsMonth} setStatsMonth={setStatsMonth} monthOptions={monthOptions}
             statsTotal={statsTotal} statsYearly={statsYearly} statsMonthly={statsMonthly}
-            dailyChartData={dailyChartData}
+            dailyChartData={dailyChartData} dailyIncomeChartData={dailyIncomeChartData}
             nedaBreakdown={nedaBreakdown} nedaGrandTotal={nedaGrandTotal}
             statsMonthExpenseTx={statsMonthExpenseTx} statsMonthIncomeTx={statsMonthIncomeTx}
             statsVisibleExpense={statsVisibleExpense} setStatsVisibleExpense={setStatsVisibleExpense}

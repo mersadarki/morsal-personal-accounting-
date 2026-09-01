@@ -15,7 +15,7 @@ function ChartFallback() {
 export default function StatsView({
   statsTab, setStatsTab, statsYear, setStatsYear, yearOptions,
   statsMonth, setStatsMonth, monthOptions, statsTotal, statsYearly, statsMonthly,
-  dailyChartData, nedaBreakdown, nedaGrandTotal,
+  dailyChartData, dailyIncomeChartData, nedaBreakdown, nedaGrandTotal,
   statsMonthExpenseTx, statsMonthIncomeTx,
   statsVisibleExpense, setStatsVisibleExpense, statsVisibleIncome, setStatsVisibleIncome,
   saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete,
@@ -50,7 +50,8 @@ export default function StatsView({
 
       {statsTab === 'monthly' && (
         <Suspense fallback={<ChartFallback />}>
-          <DailyChart data={dailyChartData} />
+          <DailyChart data={dailyChartData} title="پراکندگی هزینه‌ها در روزهای ماه" color={COLORS.expense} />
+          <DailyChart data={dailyIncomeChartData} title="پراکندگی درآمد در روزهای ماه" color={COLORS.income} />
         </Suspense>
       )}
 

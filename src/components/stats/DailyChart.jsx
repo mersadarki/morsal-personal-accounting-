@@ -2,10 +2,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { COLORS } from '../../lib/constants';
 import { fmtUnit } from '../../lib/format';
 
-export default function DailyChart({ data }) {
+export default function DailyChart({ data, title, color }) {
   return (
     <div style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 12, marginBottom: 14 }}>
-      <div style={{ fontSize: 12, color: COLORS.inkLight, marginBottom: 8 }}>پراکندگی هزینه‌ها در روزهای ماه</div>
+      <div style={{ fontSize: 12, color: COLORS.inkLight, marginBottom: 8 }}>{title || 'پراکندگی هزینه‌ها در روزهای ماه'}</div>
       <div style={{ width: '100%', height: 180 }}>
         <ResponsiveContainer>
           <BarChart data={data} margin={{ top: 4, right: 4, left: 4, bottom: 4 }}>
@@ -13,7 +13,7 @@ export default function DailyChart({ data }) {
             <XAxis dataKey="day" tick={{ fontSize: 9, fill: COLORS.inkLight }} interval={2} />
             <YAxis tick={{ fontSize: 9, fill: COLORS.inkLight }} width={30} />
             <Tooltip formatter={(v) => { const a = fmtUnit(v); return `${a.text} ${a.unit}`; }} contentStyle={{ fontFamily: 'Vazirmatn', fontSize: 11, direction: 'rtl' }} />
-            <Bar dataKey="amount" fill={COLORS.expense} radius={[3, 3, 0, 0]} />
+            <Bar dataKey="amount" fill={color || COLORS.expense} radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
