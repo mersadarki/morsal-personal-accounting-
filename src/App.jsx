@@ -11,6 +11,7 @@ import { fontStyle } from './lib/ui.jsx';
 import { useAppUpdate } from './lib/useAppUpdate';
 
 import Header from './components/Header';
+import BottomNav from './components/BottomNav';
 import CurrentMonthBar from './components/CurrentMonthBar';
 import HomeView from './components/home/HomeView';
 import InstallmentReminder from './components/home/InstallmentReminder';
@@ -440,8 +441,8 @@ export default function App() {
 
   return (
     <div dir="rtl" style={{ ...fontStyle, background: COLORS.paper, minHeight: '100vh', color: COLORS.ink }}>
-      <Header view={view} setView={setView} />
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '18px 16px 60px' }}>
+      <Header />
+      <div style={{ maxWidth: 720, margin: '0 auto', padding: '18px 16px', paddingBottom: 'calc(84px + env(safe-area-inset-bottom))' }}>
         <CurrentMonthBar currentMonth={currentMonth} onChange={persistMonth} />
 
         {view === 'home' && (
@@ -509,6 +510,7 @@ export default function App() {
           onSubmit={submitBalForm} onClose={() => setShowBalForm(false)}
         />
       )}
+      <BottomNav view={view} setView={setView} />
     </div>
   );
 }
