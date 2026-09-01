@@ -25,6 +25,20 @@ export function monthInfo(raw0) {
   return { year, idx, sortKey, label: raw || 'نامشخص' };
 }
 
+// Advances a "<month name> <year>" label by n months (n=0 returns the same
+// month), e.g. advanceMonthLabel('شهریور ۱۴۰۵', 1) -> 'مهر ۱۴۰۵'. Used to
+// bulk-generate N consecutive months of installment due dates from one
+// starting month. Returns null if the label doesn't parse.
+export function advanceMonthLabel(label, n) {
+  const info = monthInfo(label);
+  if (info.idx === -1 || !info.year) return null;
+  let idx = info.idx + n;
+  let year = parseInt(info.year, 10);
+  year += Math.floor(idx / 12);
+  idx = ((idx % 12) + 12) % 12;
+  return `${MONTHS[idx]} ${toFaDigits(year)}`;
+}
+
 // amounts stored in "hezar toman" units; displayed with Persian digits,
 // grouped by ٬ (the actual Arabic thousands separator — ٫ is a decimal
 // point and reads as one, which is exactly what made a plain hezar-toman

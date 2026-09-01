@@ -10,6 +10,7 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
   const [expanded, setExpanded] = useState(false);
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('1');
+  const [count, setCount] = useState('1');
   const [error, setError] = useState('');
   const [quickDay, setQuickDay] = useState('1');
 
@@ -17,8 +18,9 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
     e.preventDefault();
     if (!month.trim()) { setError('ماه را وارد کنید (مثلاً: مهر ۱۴۰۵).'); return; }
     const d = parseInt(toEnglishDigits(day), 10);
-    onAddDate(plan.id, month.trim(), d);
-    setMonth(''); setDay('1'); setError('');
+    const c = Math.max(1, parseInt(toEnglishDigits(count), 10) || 1);
+    onAddDate(plan.id, month.trim(), d, c);
+    setMonth(''); setDay('1'); setCount('1'); setError('');
   }
 
   const sorted = [...plan.entries].sort((a, b) => (a.paid === b.paid ? 0 : a.paid ? 1 : -1));
@@ -101,7 +103,7 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
           )}
           <form onSubmit={submit} style={{ display: 'flex', gap: 6, padding: 10, borderTop: `1px solid ${COLORS.line}`, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <div style={{ flex: '2 1 120px' }}>
-              <FieldLabel>ماه</FieldLabel>
+              <FieldLabel>ماه شروع</FieldLabel>
               <input value={month} onChange={(e) => setMonth(e.target.value)} placeholder="مثلاً: مهر ۱۴۰۵" style={inputStyle} />
             </div>
             <div style={{ flex: '1 1 70px' }}>
@@ -110,8 +112,17 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
                 {dayOptions.map((d) => <option key={d} value={d}>{toFaDigits(d)}</option>)}
               </select>
             </div>
-            <button type="submit" style={{ ...secondaryBtn, flexShrink: 0 }}><Plus size={14} /> افزودن</button>
+            <div style={{ flex: '1 1 70px' }}>
+              <FieldLabel>تعداد ماه</FieldLabel>
+              <input inputMode="numeric" value={count} onChange={(e) => setCount(e.target.value)} placeholder="۱" style={inputStyle} />
+            </div>
+            <button type="submit" style={{ ...secondaryBtn, flexShrink: 0 }}>
+              <Plus size={14} /> {Number(toEnglishDigits(count)) > 1 ? `افزودن ${toFaDigits(count)} ماه` : 'افزودن'}
+            </button>
           </form>
+          <div style={{ fontSize: 10.5, color: COLORS.inkLight, padding: '0 12px 8px' }}>
+            با تعداد ماه بیشتر از ۱، همون روز برای چند ماه پشت‌سرهم شروع از «ماه شروع» ثبت می‌شه.
+          </div>
           {error && <div style={{ color: COLORS.expense, fontSize: 12, padding: '0 12px 10px' }}>{error}</div>}
         </>
       )}

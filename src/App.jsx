@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { COLORS } from './lib/constants';
-import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel } from './lib/format';
+import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel } from './lib/format';
 import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
@@ -341,11 +341,22 @@ export default function App() {
     if (parsed.length === 0) return;
     persistInstallments([...parsed, ...installments]);
   }
-  function addInstallmentDate(planId, m, dt) {
+  // count > 1 bulk-generates that many consecutive months from `m` onward
+  // (same day each month) instead of adding just the one — for a fixed
+  // installment where you already know it's N months of the same payment.
+  // Months that already have an entry are skipped rather than duplicated.
+  function addInstallmentDate(planId, m, dt, count = 1) {
+    const months = [];
+    for (let i = 0; i < count; i += 1) {
+      const label = i === 0 ? m : advanceMonthLabel(m, i);
+      if (label) months.push(label);
+    }
     persistInstallments(installments.map((p) => {
       if (p.id !== planId) return p;
-      const nid = p.entries.reduce((mx, e) => Math.max(mx, e.id || 0), 0) + 1;
-      return { ...p, entries: [...p.entries, { id: nid, m, dt, paid: false }] };
+      let nid = p.entries.reduce((mx, e) => Math.max(mx, e.id || 0), 0);
+      const existing = new Set(p.entries.map((e) => e.m));
+      const newEntries = months.filter((mo) => !existing.has(mo)).map((mo) => { nid += 1; return { id: nid, m: mo, dt, paid: false }; });
+      return { ...p, entries: [...p.entries, ...newEntries] };
     }));
   }
   // A fixed-term plan (not recurring) with at least one entry, all of them
