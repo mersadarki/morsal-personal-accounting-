@@ -5,11 +5,11 @@ import TransactionList from './TransactionList';
 export default function HomeView({
   latestBalances, form, setForm, formError, editingId, titleSuggestions,
   onSubmit, onCancelEdit, listTx, visibleCount, setVisibleCount,
-  saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete,
+  saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete, onEditBalance,
 }) {
   return (
     <div>
-      <BalanceCards latestBalances={latestBalances} />
+      <BalanceCards latestBalances={latestBalances} onEditBalance={onEditBalance} />
       <EntryForm
         form={form} setForm={setForm} formError={formError} editingId={editingId}
         titleSuggestions={titleSuggestions} onSubmit={onSubmit} onCancelEdit={onCancelEdit}

@@ -398,7 +398,7 @@ export default function App() {
               titleSuggestions={titleSuggestions} onSubmit={submitForm} onCancelEdit={openAdd}
               listTx={listTx} visibleCount={visibleCount} setVisibleCount={setVisibleCount}
               saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
-              onEdit={openEdit} onDelete={handleDelete}
+              onEdit={openEdit} onDelete={handleDelete} onEditBalance={openEditBalance}
             />
           </>
         )}

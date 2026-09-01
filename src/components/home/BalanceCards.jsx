@@ -1,6 +1,6 @@
-import { Landmark, Wallet, Banknote, DollarSign } from 'lucide-react';
+import { Landmark, Wallet, Banknote, DollarSign, Pencil } from 'lucide-react';
 import { ACCOUNTS, ACCOUNT_LABELS, COLORS } from '../../lib/constants';
-import { Amount } from '../../lib/ui.jsx';
+import { Amount, iconBtn } from '../../lib/ui.jsx';
 
 // Distinct icon + brand-ish color per account, standing in for a bank logo
 // (we don't embed actual bank trademarks) — ملی/اعتبار ملی share Bank Melli's
@@ -14,7 +14,7 @@ const ACCOUNT_STYLE = {
   'دلار': { icon: DollarSign, bg: '#1a7a6e', fg: '#fff' },
 };
 
-export default function BalanceCards({ latestBalances }) {
+export default function BalanceCards({ latestBalances, onEditBalance }) {
   // دلار is a different currency, not toman, so it's excluded from the
   // toman total — mixing it in would silently add a dollar count to a
   // toman sum.
@@ -49,8 +49,16 @@ export default function BalanceCards({ latestBalances }) {
         })}
       </div>
       {latestBalances && (
-        <div style={{ fontSize: 11, color: COLORS.inkLight, marginBottom: 16, textAlign: 'center' }}>
-          آخرین موجودی: {latestBalances.month}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: COLORS.inkLight }}>آخرین موجودی: {latestBalances.month}</div>
+          <button
+            onClick={() => onEditBalance(latestBalances.month)}
+            aria-label="ویرایش موجودی حساب‌ها"
+            title="اشتباه زدی؟ اینجا درستش کن"
+            style={{ ...iconBtn(COLORS.brassDark), width: 22, height: 22 }}
+          >
+            <Pencil size={12} />
+          </button>
         </div>
       )}
     </>
