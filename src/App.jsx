@@ -138,8 +138,8 @@ export default function App() {
     installments.forEach((plan) => {
       plan.entries.forEach((en) => {
         if (en.paid) return;
-        if (en.m === todayM && en.dt === todayJ.jd) items.push({ key: `${plan.id}-${en.id}`, name: plan.name, when: 'today' });
-        else if (en.m === tomorrowM && en.dt === tomorrowJ.jd) items.push({ key: `${plan.id}-${en.id}`, name: plan.name, when: 'tomorrow' });
+        if (en.m === todayM && en.dt === todayJ.jd) items.push({ key: `${plan.id}-${en.id}`, name: plan.name, when: 'today', planId: plan.id, entryId: en.id });
+        else if (en.m === tomorrowM && en.dt === tomorrowJ.jd) items.push({ key: `${plan.id}-${en.id}`, name: plan.name, when: 'tomorrow', planId: plan.id, entryId: en.id });
       });
     });
     return items;
@@ -411,7 +411,7 @@ export default function App() {
 
         {view === 'home' && (
           <>
-            <InstallmentReminder items={installmentReminders} />
+            <InstallmentReminder items={installmentReminders} onDismiss={toggleInstallmentPaid} />
             <QuickBalanceButtons onQuickAdd={quickAddBalance} />
             <HomeView
               latestBalances={latestBalances}
