@@ -18,6 +18,7 @@ export default function StatsGrid({ stats }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
         <StatCard label="درآمد کاپیتان" value={stats.kapitan} color={COLORS.income} />
         <StatCard label="درآمد وی‌پی‌ان (خالص)" value={stats.vpnNet} color={COLORS.income} />
+        <StatCard label="سود وی‌پی‌ان نیو" value={stats.vpnNewProfit} color={COLORS.income} />
         <StatCard label="درآمد خدمات" value={stats.khadamat} color={COLORS.income} />
         <StatCard label="مجموع درآمد" value={stats.incomeTotal} color={COLORS.income} />
       </div>

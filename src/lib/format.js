@@ -96,6 +96,7 @@ export function isVpnPartnerTitle(title) {
   const t = (title || '').trim();
   return t === 'امیر' || t === 'وحید';
 }
+export function isVpnNewExpenseTitle(title) { return (title || '').trim() === 'vpn new'; }
 // Titles the user's own spreadsheet formula excludes from «کل هزینه»:
 // جابجایی (internal transfer), امیر/وحید (vpn resale partner payout),
 // «vpn new» (cost of the vpn-new scheme), قرض-titled (loans, not spending),
