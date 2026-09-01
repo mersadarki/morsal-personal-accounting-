@@ -1,17 +1,38 @@
 import { useState } from 'react';
-import { Trash2, Plus, Check, ChevronDown, ChevronUp, Repeat, AlertCircle } from 'lucide-react';
+import { Trash2, Plus, Check, X, Pencil, ChevronDown, ChevronUp, Repeat, AlertCircle } from 'lucide-react';
 import { COLORS, MONTHS } from '../../lib/constants';
-import { toFaDigits, toEnglishDigits, monthInfo } from '../../lib/format';
-import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel, Amount } from '../../lib/ui.jsx';
+import { toFaDigits, toEnglishDigits, monthInfo, parseMoneyShorthand } from '../../lib/format';
+import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel, Amount, AmountInput } from '../../lib/ui.jsx';
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
-export default function InstallmentCard({ plan, currentMonth, onAddDate, onTogglePaid, onDeleteDate, onDeletePlan, onSetRecurring }) {
+export default function InstallmentCard({ plan, currentMonth, onAddDate, onTogglePaid, onDeleteDate, onDeletePlan, onSetRecurring, onEditPlan }) {
   const [expanded, setExpanded] = useState(false);
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('1');
   const [count, setCount] = useState('1');
   const [error, setError] = useState('');
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState(plan.name);
+  const [editAmount, setEditAmount] = useState(plan.amount != null ? String(plan.amount) : '');
+
+  function startEdit(e) {
+    e.stopPropagation();
+    setEditName(plan.name);
+    setEditAmount(plan.amount != null ? String(plan.amount) : '');
+    setEditing(true);
+    setExpanded(true);
+  }
+  function saveEdit(e) {
+    e.stopPropagation();
+    const amt = editAmount.trim() ? parseMoneyShorthand(editAmount) : NaN;
+    onEditPlan(plan.id, { name: editName.trim() || plan.name, amount: editAmount.trim() && !isNaN(amt) ? amt : null });
+    setEditing(false);
+  }
+  function cancelEdit(e) {
+    e.stopPropagation();
+    setEditing(false);
+  }
 
   function submit(e) {
     e.preventDefault();
@@ -47,37 +68,67 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
 
   return (
     <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, marginBottom: 12, overflow: 'hidden' }}>
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 12px', background: COLORS.paperDark, border: 'none', cursor: 'pointer' }}
+      <div
+        onClick={() => { if (!editing) setExpanded((v) => !v); }}
+        style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 12px', background: COLORS.paperDark, cursor: editing ? 'default' : 'pointer' }}
       >
-        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {expanded ? <ChevronUp size={15} color={COLORS.inkLight} /> : <ChevronDown size={15} color={COLORS.inkLight} />}
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{plan.name}</div>
-            {plan.amount != null && (
-              <div style={{ fontSize: 10.5, color: COLORS.inkLight }}><Amount value={plan.amount} /></div>
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {editing ? (
+              <input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                placeholder="اسم قسط"
+                style={{ ...inputStyle, width: '100%', marginBottom: 6 }}
+              />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                {expanded ? <ChevronUp size={15} color={COLORS.inkLight} /> : <ChevronDown size={15} color={COLORS.inkLight} />}
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{plan.name}</div>
+                {plan.recurring && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, background: COLORS.brassDark + '22', color: COLORS.brassDark, padding: '1px 6px', borderRadius: 6, fontWeight: 700 }}>
+                    <Repeat size={10} /> ماهانه
+                  </span>
+                )}
+              </div>
             )}
-            {plan.recurring && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, background: COLORS.brassDark + '22', color: COLORS.brassDark, padding: '1px 6px', borderRadius: 6, fontWeight: 700 }}>
-                <Repeat size={10} /> ماهانه
-              </span>
+            {editing ? (
+              <div onClick={(e) => e.stopPropagation()} style={{ maxWidth: 220 }}>
+                <AmountInput value={editAmount} onChange={(e) => setEditAmount(e.target.value)} />
+              </div>
+            ) : plan.amount != null ? (
+              <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.expense, paddingRight: 21, marginTop: 1 }}>
+                <Amount value={plan.amount} />
+              </div>
+            ) : null}
+            {!editing && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, paddingRight: 21, fontSize: 11, fontWeight: 600, color: thisMonthEntry ? (thisMonthEntry.paid ? COLORS.income : COLORS.expense) : COLORS.inkLight, marginTop: 2 }}>
+                {thisMonthEntry ? (thisMonthEntry.paid ? <Check size={11} /> : <AlertCircle size={11} />) : (
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: COLORS.inkLight, flexShrink: 0 }} />
+                )}
+                {thisMonthEntry
+                  ? `روز ${toFaDigits(thisMonthEntry.dt)} — ${thisMonthEntry.paid ? 'پرداخت شد' : 'پرداخت نشده'}`
+                  : `سررسید ${currentMonth} هنوز ثبت نشده`}
+              </div>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ fontSize: 12, color: COLORS.inkLight }}>{plan.recurring ? '' : (remaining > 0 ? `${toFaDigits(remaining)} مونده` : 'تسویه')}</div>
-            <span role="button" tabIndex={0} aria-label="حذف قسط" onClick={(e) => { e.stopPropagation(); onDeletePlan(plan.id); }} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            {editing ? (
+              <>
+                <span role="button" tabIndex={0} aria-label="ذخیره تغییرات" onClick={saveEdit} style={iconBtn(COLORS.income)}><Check size={15} /></span>
+                <span role="button" tabIndex={0} aria-label="انصراف از ویرایش" onClick={cancelEdit} style={iconBtn(COLORS.inkLight)}><X size={15} /></span>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 12, color: COLORS.inkLight, whiteSpace: 'nowrap' }}>{plan.recurring ? '' : (remaining > 0 ? `${toFaDigits(remaining)} مونده` : 'تسویه')}</div>
+                <span role="button" tabIndex={0} aria-label="ویرایش قسط" onClick={startEdit} style={iconBtn(COLORS.inkLight)}><Pencil size={13} /></span>
+                <span role="button" tabIndex={0} aria-label="حذف قسط" onClick={(e) => { e.stopPropagation(); onDeletePlan(plan.id); }} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></span>
+              </>
+            )}
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, paddingRight: 21, fontSize: 11, fontWeight: 600, color: thisMonthEntry ? (thisMonthEntry.paid ? COLORS.income : COLORS.expense) : COLORS.inkLight }}>
-          {thisMonthEntry ? (thisMonthEntry.paid ? <Check size={11} /> : <AlertCircle size={11} />) : (
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: COLORS.inkLight, flexShrink: 0 }} />
-          )}
-          {thisMonthEntry
-            ? `روز ${toFaDigits(thisMonthEntry.dt)} — ${thisMonthEntry.paid ? 'پرداخت شد' : 'پرداخت نشده'}`
-            : `سررسید ${currentMonth} هنوز ثبت نشده`}
-        </div>
-      </button>
+      </div>
       {expanded && (
         <>
           {sorted.length > 0 && (

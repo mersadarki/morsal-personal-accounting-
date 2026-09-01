@@ -336,6 +336,9 @@ export default function App() {
   function setInstallmentRecurring(planId, recurring) {
     persistInstallments(installments.map((p) => (p.id === planId ? { ...p, recurring } : p)));
   }
+  function editInstallmentPlan(planId, updates) {
+    persistInstallments(installments.map((p) => (p.id === planId ? { ...p, ...updates } : p)));
+  }
   // Parses one plan per line — "<amount> <day> <title...>" (amount accepts
   // the same X/Y shorthand as everywhere else) — for pasting in a whole
   // month's worth of bills at once instead of adding each by hand. All
@@ -468,7 +471,7 @@ export default function App() {
           <InstallmentsView
             installments={installments} currentMonth={currentMonth} onAddPlan={addInstallmentPlan} onAddDate={addInstallmentDate}
             onTogglePaid={toggleInstallmentPaid} onDeleteDate={deleteInstallmentDate} onDeletePlan={deleteInstallmentPlan}
-            onBulkAdd={bulkAddInstallmentPlans} onSetRecurring={setInstallmentRecurring}
+            onBulkAdd={bulkAddInstallmentPlans} onSetRecurring={setInstallmentRecurring} onEditPlan={editInstallmentPlan}
           />
         )}
 

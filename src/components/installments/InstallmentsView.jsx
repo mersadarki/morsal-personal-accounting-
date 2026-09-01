@@ -7,7 +7,7 @@ import InstallmentCard from './InstallmentCard';
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
-export default function InstallmentsView({ installments, currentMonth, onAddPlan, onAddDate, onTogglePaid, onDeleteDate, onDeletePlan, onBulkAdd, onSetRecurring }) {
+export default function InstallmentsView({ installments, currentMonth, onAddPlan, onAddDate, onTogglePaid, onDeleteDate, onDeletePlan, onBulkAdd, onSetRecurring, onEditPlan }) {
   const [name, setName] = useState('');
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('1');
@@ -111,7 +111,7 @@ export default function InstallmentsView({ installments, currentMonth, onAddPlan
         <div style={{ padding: 30, textAlign: 'center', color: COLORS.inkLight, fontSize: 13, background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12 }}>هنوز قسطی ثبت نشده.</div>
       )}
       {installments.map((p) => (
-        <InstallmentCard key={p.id} plan={p} currentMonth={currentMonth} onAddDate={onAddDate} onTogglePaid={onTogglePaid} onDeleteDate={onDeleteDate} onDeletePlan={onDeletePlan} onSetRecurring={onSetRecurring} />
+        <InstallmentCard key={p.id} plan={p} currentMonth={currentMonth} onAddDate={onAddDate} onTogglePaid={onTogglePaid} onDeleteDate={onDeleteDate} onDeletePlan={onDeletePlan} onSetRecurring={onSetRecurring} onEditPlan={onEditPlan} />
       ))}
     </div>
   );
