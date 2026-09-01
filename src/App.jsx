@@ -327,10 +327,17 @@ export default function App() {
       return { ...p, entries: [...p.entries, { id: nid, m, dt, paid: false }] };
     }));
   }
+  // A fixed-term plan (not recurring) with at least one entry, all of them
+  // paid, is fully settled — it drops off the list on its own instead of
+  // sitting there forever like a debt that's already been paid off.
+  function isInstallmentComplete(p) { return !p.recurring && p.entries.length > 0 && p.entries.every((e) => e.paid); }
   function toggleInstallmentPaid(planId, entryId) {
-    persistInstallments(installments.map((p) => (p.id !== planId ? p : {
-      ...p, entries: p.entries.map((e) => (e.id === entryId ? { ...e, paid: !e.paid } : e)),
-    })));
+    const next = installments
+      .map((p) => (p.id !== planId ? p : {
+        ...p, entries: p.entries.map((e) => (e.id === entryId ? { ...e, paid: !e.paid } : e)),
+      }))
+      .filter((p) => !isInstallmentComplete(p));
+    persistInstallments(next);
   }
   function deleteInstallmentDate(planId, entryId) {
     persistInstallments(installments.map((p) => (p.id === planId ? { ...p, entries: p.entries.filter((e) => e.id !== entryId) } : p)));
