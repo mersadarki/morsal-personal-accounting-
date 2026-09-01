@@ -276,17 +276,13 @@ export default function App() {
   }
   function handleDeleteBalance(month) { const next = { ...balances }; delete next[month]; persistBalances(next); setConfirmDeleteBal(null); }
 
+  // Always adds its own new row — merging into an existing same-day vpn
+  // entry made the +500 tap look like it did nothing, since the number on
+  // an already-there row just ticked up instead of a new line appearing.
   function quickAddBalance(account) {
     adjustBalance(currentMonth, account, 500);
-
-    const amt = 500;
     const dt = todayDay();
-    const matchIdx = tx.findIndex((r) => r.t === 'i' && r.m === currentMonth && r.dt === dt && r.acc === account && r.cat === 'vpn');
-    if (matchIdx > -1) {
-      persistTx(tx.map((r, i) => (i === matchIdx ? { ...r, a: (r.a || 0) + amt } : r)));
-    } else {
-      persistTx([...tx, { t: 'i', m: currentMonth, dt, acc: account, a: amt, ti: '', cat: 'vpn', id: uid(tx) }]);
-    }
+    persistTx([...tx, { t: 'i', m: currentMonth, dt, acc: account, a: 500, ti: '', cat: 'vpn', id: uid(tx) }]);
     setForm((f) => ({ ...f, t: 'i' }));
   }
 
