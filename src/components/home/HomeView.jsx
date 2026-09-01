@@ -9,11 +9,11 @@ export default function HomeView({
 }) {
   return (
     <div>
-      <BalanceCards latestBalances={latestBalances} onEditBalance={onEditBalance} />
       <EntryForm
         form={form} setForm={setForm} formError={formError} editingId={editingId}
         titleSuggestions={titleSuggestions} onSubmit={onSubmit} onCancelEdit={onCancelEdit}
       />
+      <BalanceCards latestBalances={latestBalances} onEditBalance={onEditBalance} />
       <TransactionList
         type={form.t} monthLabel="امروز" rows={listTx} visibleCount={visibleCount}
         onShowMore={() => setVisibleCount((c) => c + 40)} saving={saving}
