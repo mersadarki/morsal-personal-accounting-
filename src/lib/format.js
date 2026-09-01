@@ -59,22 +59,32 @@ export const UNIT_TAG = 'هزار ت';
 // amount up to هزار/میلیون/میلیارد تومان — whichever keeps the number
 // small — instead of a long digit string whose real-world scale is easy
 // to misjudge. Every stored amount is a whole number of hezar-toman, so
-// scaling to هزار or میلیون تومان is always exact; only میلیارد-scale
-// totals round to 3 decimals, which is still precise to the nearest
-// ~million toman — plenty to catch a wrong digit at a glance.
+// the میلیون-tier fraction is computed with plain integer remainder math
+// (exact — no float drift, and always the full 3 digits, e.g. 49٫500 not
+// 49٫5) and always shown zero-padded to 3 places when non-zero. Only
+// میلیارد-scale totals round their fraction to the nearest ~million toman.
 export function fmtUnit(n) {
   if (n == null || isNaN(n) || n === 0) return { text: '۰', unit: 'هزار تومان' };
-  const toman = n * 1000;
-  const abs = Math.abs(toman);
-  let divisor = 1000, unit = 'هزار تومان';
-  if (abs >= 1e9) { divisor = 1e9; unit = 'میلیارد تومان'; }
-  else if (abs >= 1e6) { divisor = 1e6; unit = 'میلیون تومان'; }
-  const scaled = Math.round((toman / divisor) * 1000) / 1000;
-  const neg = scaled < 0;
-  const absScaled = Math.abs(scaled);
-  const [intPart, decPart] = String(absScaled).split('.');
-  const groupedInt = toFaDigits(Number(intPart).toLocaleString('en-US').replace(/,/g, '٬'));
-  const text = (neg ? '-' : '') + groupedInt + (decPart ? '٫' + toFaDigits(decPart) : '');
+  const neg = n < 0;
+  const absN = Math.round(Math.abs(n));
+  let intPart, decDigits, unit;
+  if (absN >= 1e6) {
+    unit = 'میلیارد تومان';
+    intPart = Math.floor(absN / 1e6);
+    decDigits = Math.round((absN % 1e6) / 1000);
+    if (decDigits === 1000) { intPart += 1; decDigits = 0; }
+  } else if (absN >= 1000) {
+    unit = 'میلیون تومان';
+    intPart = Math.floor(absN / 1000);
+    decDigits = absN % 1000;
+  } else {
+    unit = 'هزار تومان';
+    intPart = absN;
+    decDigits = 0;
+  }
+  const groupedInt = toFaDigits(intPart.toLocaleString('en-US').replace(/,/g, '٬'));
+  const decStr = decDigits > 0 ? '٫' + toFaDigits(String(decDigits).padStart(3, '0')) : '';
+  const text = (neg ? '-' : '') + groupedInt + decStr;
   return { text, unit };
 }
 
