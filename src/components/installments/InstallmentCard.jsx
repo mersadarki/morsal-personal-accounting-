@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Trash2, Plus, Check, ChevronDown, ChevronUp, Repeat, AlertCircle } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
 import { toFaDigits, toEnglishDigits } from '../../lib/format';
-import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel } from '../../lib/ui.jsx';
+import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel, Amount } from '../../lib/ui.jsx';
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
@@ -42,6 +42,9 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {expanded ? <ChevronUp size={15} color={COLORS.inkLight} /> : <ChevronDown size={15} color={COLORS.inkLight} />}
             <div style={{ fontWeight: 700, fontSize: 14 }}>{plan.name}</div>
+            {plan.amount != null && (
+              <div style={{ fontSize: 10.5, color: COLORS.inkLight }}><Amount value={plan.amount} /></div>
+            )}
             {plan.recurring && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, background: COLORS.brassDark + '22', color: COLORS.brassDark, padding: '1px 6px', borderRadius: 6, fontWeight: 700 }}>
                 <Repeat size={10} /> ماهانه
