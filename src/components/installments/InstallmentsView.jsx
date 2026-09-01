@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, ListPlus } from 'lucide-react';
 import { COLORS, MONTHS } from '../../lib/constants';
 import { toFaDigits, toEnglishDigits, monthInfo } from '../../lib/format';
-import { inputStyle, selectStyle, primaryBtn, secondaryBtn, FieldLabel } from '../../lib/ui.jsx';
+import { inputStyle, selectStyle, primaryBtn, secondaryBtn, FieldLabel, Amount } from '../../lib/ui.jsx';
 import InstallmentCard from './InstallmentCard';
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -16,6 +16,18 @@ export default function InstallmentsView({ installments, currentMonth, onAddPlan
   const [error, setError] = useState('');
   const [showBulk, setShowBulk] = useState(false);
   const [bulkText, setBulkText] = useState('');
+
+  const { totalUnpaid, missingAmountCount } = useMemo(() => {
+    let total = 0;
+    let missing = 0;
+    installments.forEach((p) => {
+      const unpaidCount = p.entries.filter((en) => !en.paid).length;
+      if (unpaidCount === 0) return;
+      if (p.amount != null) total += p.amount * unpaidCount;
+      else missing += unpaidCount;
+    });
+    return { totalUnpaid: total, missingAmountCount: missing };
+  }, [installments]);
 
   function submit(e) {
     e.preventDefault();
@@ -51,6 +63,21 @@ export default function InstallmentsView({ installments, currentMonth, onAddPlan
 
   return (
     <div>
+      {(totalUnpaid > 0 || missingAmountCount > 0) && (
+        <div style={{ background: COLORS.cover, color: COLORS.paper, borderRadius: 12, padding: 12, marginBottom: 10, textAlign: 'center' }}>
+          <div style={{ fontSize: 11, opacity: 0.85, marginBottom: 3 }}>مبلغ کل اقساط پرداخت‌نشده</div>
+          {totalUnpaid > 0 ? (
+            <div className="tabular" style={{ fontSize: 18, fontWeight: 800 }}><Amount value={totalUnpaid} /></div>
+          ) : (
+            <div style={{ fontSize: 15, fontWeight: 700 }}>نامشخص</div>
+          )}
+          {missingAmountCount > 0 && (
+            <div style={{ fontSize: 10, opacity: 0.75, marginTop: 4 }}>
+              {toFaDigits(missingAmountCount)} قسط بدون مبلغ ثبت‌شده، {totalUnpaid > 0 ? 'توی این جمع حساب نشده' : 'برای همینه که جمع مشخص نیست'}
+            </div>
+          )}
+        </div>
+      )}
       <form onSubmit={submit} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 10, marginBottom: 10 }}>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="اسم قسط/وام جدید..." style={{ ...inputStyle, width: '100%', marginBottom: 8 }} />
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12.5, color: COLORS.inkLight, marginBottom: 8 }}>
