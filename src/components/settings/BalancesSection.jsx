@@ -36,7 +36,7 @@ export default function BalancesSection({
             {ACCOUNTS.map((a) => b[a] != null && (
               <div key={a}>
                 <div style={{ fontSize: 10, color: COLORS.inkLight }}>{ACCOUNT_LABELS[a]}</div>
-                <div className="tabular" style={{ fontSize: 12, fontWeight: 700 }}><Amount value={b[a]} /></div>
+                <div className="tabular" style={{ fontSize: 12, fontWeight: 700 }}><Amount value={b[a]} account={a} /></div>
               </div>
             ))}
           </div>

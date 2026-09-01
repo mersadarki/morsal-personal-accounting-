@@ -264,7 +264,9 @@ export default function App() {
     Object.keys(emptyBalForm).forEach((a) => {
       if (a === 'month') return;
       const raw = String(balForm[a] || '').trim();
-      if (raw !== '') { const n = parseMoneyShorthand(raw); if (!isNaN(n)) entry[a] = n; }
+      // دلار is stored as a plain dollar count, not hezar-toman, so the
+      // X/Y "million/thousand toman" shorthand doesn't apply to it.
+      if (raw !== '') { const n = a === 'دلار' ? parseFloat(toEnglishDigits(raw)) : parseMoneyShorthand(raw); if (!isNaN(n)) entry[a] = n; }
     });
     const next = { ...balances };
     if (editingBalMonth != null && editingBalMonth !== month) delete next[editingBalMonth];
@@ -308,6 +310,14 @@ export default function App() {
     persistDebts(debts.map((d) => (d.id === personId ? { ...d, entries: d.entries.filter((e) => e.id !== entryId) } : d)));
   }
   function deleteDebtPerson(personId) { persistDebts(debts.filter((d) => d.id !== personId)); }
+  // Flips every entry's sign for one person — for correcting a person whose
+  // debt/claim direction was recorded backwards, without losing their entry
+  // history (each amount and note stays, only the +/− flips).
+  function flipDebtEntries(personId) {
+    persistDebts(debts.map((d) => (d.id !== personId ? d : {
+      ...d, entries: d.entries.map((e) => ({ ...e, delta: -e.delta })),
+    })));
+  }
 
   function addInstallmentPlan(name, recurring) { persistInstallments([...installments, { id: uid(installments), name, amount: null, recurring: !!recurring, entries: [] }]); }
   function addInstallmentDate(planId, m, dt) {
@@ -390,6 +400,7 @@ export default function App() {
           <DebtsView
             debts={debts} onAddPerson={addDebtPerson} onAddEntries={addDebtEntries}
             onEditEntry={editDebtEntry} onDeleteEntry={deleteDebtEntry} onDeletePerson={deleteDebtPerson}
+            onFlip={flipDebtEntries}
           />
         )}
 

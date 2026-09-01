@@ -4,7 +4,7 @@ import { COLORS } from '../../lib/constants';
 import { inputStyle, primaryBtn, Amount } from '../../lib/ui.jsx';
 import DebtCard from './DebtCard';
 
-export default function DebtsView({ debts, onAddPerson, onAddEntries, onEditEntry, onDeleteEntry, onDeletePerson }) {
+export default function DebtsView({ debts, onAddPerson, onAddEntries, onEditEntry, onDeleteEntry, onDeletePerson, onFlip }) {
   const [name, setName] = useState('');
 
   function submit(e) {
@@ -49,7 +49,7 @@ export default function DebtsView({ debts, onAddPerson, onAddEntries, onEditEntr
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.income, marginBottom: 8 }}>طلب من — این‌ها بهم بدهکارن</div>
           {owedToMe.map((d) => (
-            <DebtCard key={d.id} debt={d} onAddEntries={onAddEntries} onEditEntry={onEditEntry} onDeleteEntry={onDeleteEntry} onDeletePerson={onDeletePerson} />
+            <DebtCard key={d.id} debt={d} onAddEntries={onAddEntries} onEditEntry={onEditEntry} onDeleteEntry={onDeleteEntry} onDeletePerson={onDeletePerson} onFlip={onFlip} />
           ))}
         </div>
       )}
@@ -58,7 +58,7 @@ export default function DebtsView({ debts, onAddPerson, onAddEntries, onEditEntr
         <div>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.expense, marginBottom: 8 }}>بدهی من — به این‌ها بدهکارم</div>
           {owedByMe.map((d) => (
-            <DebtCard key={d.id} debt={d} onAddEntries={onAddEntries} onEditEntry={onEditEntry} onDeleteEntry={onDeleteEntry} onDeletePerson={onDeletePerson} />
+            <DebtCard key={d.id} debt={d} onAddEntries={onAddEntries} onEditEntry={onEditEntry} onDeleteEntry={onDeleteEntry} onDeletePerson={onDeletePerson} onFlip={onFlip} />
           ))}
         </div>
       )}

@@ -34,7 +34,7 @@ export default function TransactionList({
                 </div>
               </div>
               <div className="tabular" style={{ fontWeight: 700, fontSize: 13, color: isExpense ? COLORS.expense : COLORS.income, whiteSpace: 'nowrap' }}>
-                {isExpense ? '−' : '+'}<Amount value={r.a} />
+                <Amount value={r.a} sign={isExpense ? '−' : '+'} />
               </div>
               {confirmDeleteId === r.id ? (
                 <div style={{ display: 'flex', gap: 4 }}>

@@ -1,5 +1,5 @@
 import { COLORS } from './constants';
-import { describeAmount, fmtUnit, UNIT_TAG } from './format';
+import { describeAmount, fmt, fmtUnit, UNIT_TAG } from './format';
 
 export const fontStyle = { fontFamily: "'Vazirmatn', sans-serif" };
 export const displayStyle = { fontFamily: "'Lalezar', cursive" };
@@ -30,13 +30,21 @@ export function AmountPreview({ value }) {
 // Displays a money value scaled to its own natural unit (هزار/میلیون/
 // میلیارد تومان) so its real-world magnitude is legible at a glance,
 // instead of a long hezar-toman digit string next to a fixed "هزار ت"
-// tag that made every number look smaller than it actually was.
-export function Amount({ value }) {
-  const { text, unit } = fmtUnit(value);
+// tag that made every number look smaller than it actually was. The unit
+// always sits on its own line below the number — never split mid-phrase
+// between two lines, which is what made a wrapped "هزار تومان" look like
+// it belonged half to the row above and half to the row below.
+// `account`: pass 'دلار' to render as a plain dollar count instead of a
+// toman conversion — that account's stored number *is* dollars, not
+// hezar-toman, so scaling it into توم ان units would misrepresent it.
+export function Amount({ value, sign, account }) {
+  const isDollar = account === 'دلار';
+  const { text, unit } = isDollar ? { text: fmt(value), unit: 'دلار' } : fmtUnit(value);
   return (
-    <>
-      {text} <span style={{ fontSize: '0.72em', fontWeight: 500, opacity: 0.72 }}>{unit}</span>
-    </>
+    <span style={{ display: 'inline-block', verticalAlign: 'middle' }}>
+      <div>{sign || ''}{text}</div>
+      <div style={{ fontSize: '0.72em', fontWeight: 500, opacity: 0.72, whiteSpace: 'nowrap' }}>{unit}</div>
+    </span>
   );
 }
 

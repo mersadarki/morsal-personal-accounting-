@@ -12,13 +12,16 @@ export default function BalanceFormModal({ balForm, setBalForm, balError, editin
         </div>
         <FieldLabel>ماه</FieldLabel>
         <input value={balForm.month} onChange={(e) => setBalForm((f) => ({ ...f, month: e.target.value }))} placeholder="مثلاً: مهر ۱۴۰۵" style={{ ...inputStyle, width: '100%', marginBottom: 10 }} />
-        {ACCOUNTS.map((a) => (
-          <div key={a}>
-            <FieldLabel>{ACCOUNT_LABELS[a]} (هزار تومان — یا مثلاً ۵/۸۰۰)</FieldLabel>
-            <input inputMode="decimal" value={balForm[a]} onChange={(e) => setBalForm((f) => ({ ...f, [a]: e.target.value }))} placeholder="0" style={{ ...inputStyle, width: '100%' }} />
-            <div style={{ marginBottom: 10 }}><AmountPreview value={balForm[a]} /></div>
-          </div>
-        ))}
+        {ACCOUNTS.map((a) => {
+          const isDollar = a === 'دلار';
+          return (
+            <div key={a}>
+              <FieldLabel>{isDollar ? `${ACCOUNT_LABELS[a]} (تعداد دلار)` : `${ACCOUNT_LABELS[a]} (هزار تومان — یا مثلاً ۵/۸۰۰)`}</FieldLabel>
+              <input inputMode="decimal" value={balForm[a]} onChange={(e) => setBalForm((f) => ({ ...f, [a]: e.target.value }))} placeholder="0" style={{ ...inputStyle, width: '100%' }} />
+              <div style={{ marginBottom: 10 }}>{!isDollar && <AmountPreview value={balForm[a]} />}</div>
+            </div>
+          );
+        })}
         {balError && <div style={{ color: COLORS.expense, fontSize: 12, marginBottom: 10 }}>{balError}</div>}
         <button type="submit" style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '11px 0' }}>
           {editingBalMonth != null ? 'ذخیره تغییرات' : 'ثبت'}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Plus, Check, ChevronDown, ChevronUp, Repeat } from 'lucide-react';
+import { Trash2, Plus, Check, ChevronDown, ChevronUp, Repeat, AlertCircle } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
 import { toFaDigits, toEnglishDigits } from '../../lib/format';
 import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel } from '../../lib/ui.jsx';
@@ -23,7 +23,8 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
 
   const sorted = [...plan.entries].sort((a, b) => (a.paid === b.paid ? 0 : a.paid ? 1 : -1));
   const remaining = plan.entries.filter((en) => !en.paid).length;
-  const thisMonthAdded = plan.recurring && plan.entries.some((en) => en.m === currentMonth);
+  const thisMonthEntry = plan.entries.find((en) => en.m === currentMonth);
+  const thisMonthAdded = plan.recurring && !!thisMonthEntry;
 
   function quickAddThisMonth() {
     if (thisMonthAdded || !currentMonth) return;
@@ -35,20 +36,28 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
     <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, marginBottom: 12, overflow: 'hidden' }}>
       <button
         onClick={() => setExpanded((v) => !v)}
-        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: COLORS.paperDark, border: 'none', cursor: 'pointer' }}
+        style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 4, padding: '10px 12px', background: COLORS.paperDark, border: 'none', cursor: 'pointer' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {expanded ? <ChevronUp size={15} color={COLORS.inkLight} /> : <ChevronDown size={15} color={COLORS.inkLight} />}
-          <div style={{ fontWeight: 700, fontSize: 14 }}>{plan.name}</div>
-          {plan.recurring && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, background: COLORS.brassDark + '22', color: COLORS.brassDark, padding: '1px 6px', borderRadius: 6, fontWeight: 700 }}>
-              <Repeat size={10} /> ماهانه
-            </span>
-          )}
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            {expanded ? <ChevronUp size={15} color={COLORS.inkLight} /> : <ChevronDown size={15} color={COLORS.inkLight} />}
+            <div style={{ fontWeight: 700, fontSize: 14 }}>{plan.name}</div>
+            {plan.recurring && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, background: COLORS.brassDark + '22', color: COLORS.brassDark, padding: '1px 6px', borderRadius: 6, fontWeight: 700 }}>
+                <Repeat size={10} /> ماهانه
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ fontSize: 12, color: COLORS.inkLight }}>{remaining > 0 ? `${toFaDigits(remaining)} مونده` : (plan.recurring ? '' : 'تسویه')}</div>
+            <span role="button" tabIndex={0} aria-label="حذف قسط" onClick={(e) => { e.stopPropagation(); onDeletePlan(plan.id); }} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></span>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontSize: 12, color: COLORS.inkLight }}>{remaining > 0 ? `${toFaDigits(remaining)} مونده` : (plan.recurring ? '' : 'تسویه')}</div>
-          <span role="button" tabIndex={0} aria-label="حذف قسط" onClick={(e) => { e.stopPropagation(); onDeletePlan(plan.id); }} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, paddingRight: 21, fontSize: 11, fontWeight: 600, color: thisMonthEntry ? (thisMonthEntry.paid ? COLORS.income : COLORS.expense) : COLORS.inkLight }}>
+          {thisMonthEntry ? (thisMonthEntry.paid ? <Check size={11} /> : <AlertCircle size={11} />) : (
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: COLORS.inkLight, flexShrink: 0 }} />
+          )}
+          {thisMonthEntry ? (thisMonthEntry.paid ? `${currentMonth}: پرداخت شد` : `${currentMonth}: پرداخت نشده`) : `سررسید ${currentMonth} هنوز ثبت نشده`}
         </div>
       </button>
       {expanded && (
