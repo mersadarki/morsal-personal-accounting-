@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Trash2, Plus, Check, ChevronDown, ChevronUp, Repeat, AlertCircle } from 'lucide-react';
-import { COLORS } from '../../lib/constants';
-import { toFaDigits, toEnglishDigits } from '../../lib/format';
+import { COLORS, MONTHS } from '../../lib/constants';
+import { toFaDigits, toEnglishDigits, monthInfo } from '../../lib/format';
 import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel, Amount } from '../../lib/ui.jsx';
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -17,9 +17,18 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
   function submit(e) {
     e.preventDefault();
     if (!month.trim()) { setError('ماه را وارد کنید (مثلاً: مهر ۱۴۰۵).'); return; }
+    const info = monthInfo(month.trim());
+    if (info.idx === -1) { setError('اسم ماه رو نشناختم — مثلاً بنویس «مهر» یا «مهر ۱۴۰۵».'); return; }
+    // A month typed without its year (easy to forget, e.g. just "شهریور")
+    // used to silently break bulk-generation past the first entry, since
+    // there was no year to advance from — default it to the current
+    // month's year instead of failing.
+    const year = info.year || monthInfo(currentMonth).year;
+    if (!year) { setError('سال رو هم بنویس، مثلاً «مهر ۱۴۰۵».'); return; }
+    const normalizedMonth = `${MONTHS[info.idx]} ${toFaDigits(year)}`;
     const d = parseInt(toEnglishDigits(day), 10);
     const c = Math.max(1, parseInt(toEnglishDigits(count), 10) || 1);
-    onAddDate(plan.id, month.trim(), d, c);
+    onAddDate(plan.id, normalizedMonth, d, c);
     setMonth(''); setDay('1'); setCount('1'); setError('');
   }
 
