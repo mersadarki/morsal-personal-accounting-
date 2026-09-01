@@ -227,13 +227,12 @@ export default function App() {
         adjustments.push({ account: form.acc, delta: amt });
         adjustBalances(currentMonth, adjustments);
       } else {
-        const matchIdx = tx.findIndex((r) => r.t === 'i' && r.m === currentMonth && r.dt === rec.dt && r.acc === rec.acc && r.cat === rec.cat && !r.transfer && !r.loan);
-        if (matchIdx > -1 && !form.transfer && !form.loan) {
-          const next = tx.map((r, i) => (i === matchIdx ? { ...r, a: (r.a || 0) + amt } : r));
-          persistTx(next);
-        } else {
-          persistTx([...tx, { ...rec, id: uid(tx) }]);
-        }
+        // Always a new row — silently folding a same-day/same-account/
+        // same-category entry into an existing one hid the actual count
+        // of transactions (the same bug already fixed for the quick-add
+        // buttons), which is exactly what the grouped home-page list
+        // needs to show correctly.
+        persistTx([...tx, { ...rec, id: uid(tx) }]);
         adjustBalance(currentMonth, form.acc, amt);
       }
     } else {

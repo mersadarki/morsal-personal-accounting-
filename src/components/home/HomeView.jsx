@@ -18,7 +18,7 @@ export default function HomeView({
         type={form.t} monthLabel="امروز" rows={listTx} visibleCount={visibleCount}
         onShowMore={() => setVisibleCount((c) => c + 40)} saving={saving}
         confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
-        onEdit={onEdit} onDelete={onDelete}
+        onEdit={onEdit} onDelete={onDelete} groupByAccount
       />
     </div>
   );
