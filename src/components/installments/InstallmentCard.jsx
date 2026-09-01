@@ -60,7 +60,9 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
           {thisMonthEntry ? (thisMonthEntry.paid ? <Check size={11} /> : <AlertCircle size={11} />) : (
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: COLORS.inkLight, flexShrink: 0 }} />
           )}
-          {thisMonthEntry ? (thisMonthEntry.paid ? `${currentMonth}: پرداخت شد` : `${currentMonth}: پرداخت نشده`) : `سررسید ${currentMonth} هنوز ثبت نشده`}
+          {thisMonthEntry
+            ? `روز ${toFaDigits(thisMonthEntry.dt)} — ${thisMonthEntry.paid ? 'پرداخت شد' : 'پرداخت نشده'}`
+            : `سررسید ${currentMonth} هنوز ثبت نشده`}
         </div>
       </button>
       {expanded && (
