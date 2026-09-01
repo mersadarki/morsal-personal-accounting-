@@ -1,20 +1,38 @@
 import { useState } from 'react';
 import { Plus, ListPlus } from 'lucide-react';
-import { COLORS } from '../../lib/constants';
-import { inputStyle, primaryBtn, secondaryBtn } from '../../lib/ui.jsx';
+import { COLORS, MONTHS } from '../../lib/constants';
+import { toFaDigits, toEnglishDigits, monthInfo } from '../../lib/format';
+import { inputStyle, selectStyle, primaryBtn, secondaryBtn, FieldLabel } from '../../lib/ui.jsx';
 import InstallmentCard from './InstallmentCard';
 
-export default function InstallmentsView({ installments, currentMonth, onAddPlan, onAddDate, onTogglePaid, onDeleteDate, onDeletePlan, onBulkAdd }) {
+const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
+
+export default function InstallmentsView({ installments, currentMonth, onAddPlan, onAddDate, onTogglePaid, onDeleteDate, onDeletePlan, onBulkAdd, onSetRecurring }) {
   const [name, setName] = useState('');
+  const [month, setMonth] = useState('');
+  const [day, setDay] = useState('1');
+  const [count, setCount] = useState('1');
   const [recurring, setRecurring] = useState(false);
+  const [error, setError] = useState('');
   const [showBulk, setShowBulk] = useState(false);
   const [bulkText, setBulkText] = useState('');
 
   function submit(e) {
     e.preventDefault();
     if (!name.trim()) return;
-    onAddPlan(name.trim(), recurring);
-    setName(''); setRecurring(false);
+    const raw = month.trim();
+    let normalizedMonth = '';
+    if (raw) {
+      const info = monthInfo(raw);
+      if (info.idx === -1) { setError('اسم ماه رو نشناختم — مثلاً بنویس «مهر» یا «مهر ۱۴۰۵».'); return; }
+      const year = info.year || monthInfo(currentMonth).year;
+      if (!year) { setError('سال رو هم بنویس، مثلاً «مهر ۱۴۰۵».'); return; }
+      normalizedMonth = `${MONTHS[info.idx]} ${toFaDigits(year)}`;
+    }
+    const d = parseInt(toEnglishDigits(day), 10);
+    const c = Math.max(1, parseInt(toEnglishDigits(count), 10) || 1);
+    onAddPlan(name.trim(), recurring, normalizedMonth, d, c);
+    setName(''); setMonth(''); setDay('1'); setCount('1'); setRecurring(false); setError('');
   }
 
   function submitBulk(e) {
@@ -26,15 +44,30 @@ export default function InstallmentsView({ installments, currentMonth, onAddPlan
 
   return (
     <div>
-      <form onSubmit={submit} style={{ marginBottom: 10 }}>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="اسم قسط/وام جدید..." style={{ ...inputStyle, flex: 1 }} />
-          <button type="submit" style={primaryBtn}><Plus size={15} /> افزودن</button>
+      <form onSubmit={submit} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 10, marginBottom: 10 }}>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="اسم قسط/وام جدید..." style={{ ...inputStyle, width: '100%', marginBottom: 8 }} />
+        <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+          <div style={{ flex: '2 1 120px' }}>
+            <FieldLabel>ماه شروع (اختیاری)</FieldLabel>
+            <input value={month} onChange={(e) => setMonth(e.target.value)} placeholder="مثلاً: مهر ۱۴۰۵" style={inputStyle} />
+          </div>
+          <div style={{ flex: '1 1 70px' }}>
+            <FieldLabel>روز</FieldLabel>
+            <select value={day} onChange={(e) => setDay(e.target.value)} style={selectStyle}>
+              {dayOptions.map((d) => <option key={d} value={d}>{toFaDigits(d)}</option>)}
+            </select>
+          </div>
+          <div style={{ flex: '1 1 70px' }}>
+            <FieldLabel>تعداد ماه</FieldLabel>
+            <input inputMode="numeric" value={count} onChange={(e) => setCount(e.target.value)} placeholder="۱" style={inputStyle} />
+          </div>
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12.5, color: COLORS.inkLight }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12.5, color: COLORS.inkLight, marginBottom: 8 }}>
           <input type="checkbox" checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />
           ماهانه و بدون پایان (مثل باشگاه) — هر ماه سررسید داره و تسویه نمی‌شه
         </label>
+        <button type="submit" style={primaryBtn}><Plus size={15} /> افزودن</button>
+        {error && <div style={{ color: COLORS.expense, fontSize: 12, marginTop: 8 }}>{error}</div>}
       </form>
 
       <button type="button" onClick={() => setShowBulk((v) => !v)} style={{ ...secondaryBtn, marginBottom: 10 }}>
@@ -62,7 +95,7 @@ export default function InstallmentsView({ installments, currentMonth, onAddPlan
         <div style={{ padding: 30, textAlign: 'center', color: COLORS.inkLight, fontSize: 13, background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12 }}>هنوز قسطی ثبت نشده.</div>
       )}
       {installments.map((p) => (
-        <InstallmentCard key={p.id} plan={p} currentMonth={currentMonth} onAddDate={onAddDate} onTogglePaid={onTogglePaid} onDeleteDate={onDeleteDate} onDeletePlan={onDeletePlan} />
+        <InstallmentCard key={p.id} plan={p} currentMonth={currentMonth} onAddDate={onAddDate} onTogglePaid={onTogglePaid} onDeleteDate={onDeleteDate} onDeletePlan={onDeletePlan} onSetRecurring={onSetRecurring} />
       ))}
     </div>
   );

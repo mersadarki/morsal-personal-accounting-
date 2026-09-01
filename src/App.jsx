@@ -315,7 +315,27 @@ export default function App() {
     })));
   }
 
-  function addInstallmentPlan(name, recurring) { persistInstallments([...installments, { id: uid(installments), name, amount: null, recurring: !!recurring, entries: [] }]); }
+  // startMonth/day/count are optional — when given, the plan is created
+  // with its first due date(s) already in place (via the same bulk-months
+  // logic as addInstallmentDate) instead of an empty plan you then have to
+  // expand and add a date to separately.
+  function addInstallmentPlan(name, recurring, startMonth, day, count) {
+    let entries = [];
+    if (startMonth) {
+      const months = [];
+      const n = Math.max(1, count || 1);
+      for (let i = 0; i < n; i += 1) {
+        const label = i === 0 ? startMonth : advanceMonthLabel(startMonth, i);
+        if (label) months.push(label);
+      }
+      let nid = 0;
+      entries = months.map((m) => { nid += 1; return { id: nid, m, dt: day, paid: false }; });
+    }
+    persistInstallments([...installments, { id: uid(installments), name, amount: null, recurring: !!recurring, entries }]);
+  }
+  function setInstallmentRecurring(planId, recurring) {
+    persistInstallments(installments.map((p) => (p.id === planId ? { ...p, recurring } : p)));
+  }
   // Parses one plan per line — "<amount> <day> <title...>" (amount accepts
   // the same X/Y shorthand as everywhere else) — for pasting in a whole
   // month's worth of bills at once instead of adding each by hand. A title
@@ -447,7 +467,7 @@ export default function App() {
           <InstallmentsView
             installments={installments} currentMonth={currentMonth} onAddPlan={addInstallmentPlan} onAddDate={addInstallmentDate}
             onTogglePaid={toggleInstallmentPaid} onDeleteDate={deleteInstallmentDate} onDeletePlan={deleteInstallmentPlan}
-            onBulkAdd={bulkAddInstallmentPlans}
+            onBulkAdd={bulkAddInstallmentPlans} onSetRecurring={setInstallmentRecurring}
           />
         )}
 

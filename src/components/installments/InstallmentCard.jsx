@@ -6,18 +6,20 @@ import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel, Amount } fr
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
-export default function InstallmentCard({ plan, currentMonth, onAddDate, onTogglePaid, onDeleteDate, onDeletePlan }) {
+export default function InstallmentCard({ plan, currentMonth, onAddDate, onTogglePaid, onDeleteDate, onDeletePlan, onSetRecurring }) {
   const [expanded, setExpanded] = useState(false);
   const [month, setMonth] = useState('');
   const [day, setDay] = useState('1');
   const [count, setCount] = useState('1');
   const [error, setError] = useState('');
-  const [quickDay, setQuickDay] = useState('1');
 
   function submit(e) {
     e.preventDefault();
-    if (!month.trim()) { setError('ماه را وارد کنید (مثلاً: مهر ۱۴۰۵).'); return; }
-    const info = monthInfo(month.trim());
+    // Blank month = current month, so this one form also covers the
+    // common "just add this month's due date" case without a second,
+    // separate day picker for that.
+    const raw = month.trim() || currentMonth;
+    const info = monthInfo(raw);
     if (info.idx === -1) { setError('اسم ماه رو نشناختم — مثلاً بنویس «مهر» یا «مهر ۱۴۰۵».'); return; }
     // A month typed without its year (easy to forget, e.g. just "شهریور")
     // used to silently break bulk-generation past the first entry, since
@@ -35,13 +37,6 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
   const sorted = [...plan.entries].sort((a, b) => (a.paid === b.paid ? 0 : a.paid ? 1 : -1));
   const remaining = plan.entries.filter((en) => !en.paid).length;
   const thisMonthEntry = plan.entries.find((en) => en.m === currentMonth);
-  const thisMonthAdded = plan.recurring && !!thisMonthEntry;
-
-  function quickAddThisMonth() {
-    if (thisMonthAdded || !currentMonth) return;
-    const d = parseInt(toEnglishDigits(quickDay), 10);
-    onAddDate(plan.id, currentMonth, d);
-  }
 
   return (
     <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, marginBottom: 12, overflow: 'hidden' }}>
@@ -97,22 +92,13 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
               ))}
             </div>
           )}
-          {plan.recurring && (
-            <div style={{ display: 'flex', gap: 6, padding: 10, borderTop: `1px solid ${COLORS.line}`, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 90px' }}>
-                <FieldLabel>روز سررسید</FieldLabel>
-                <select value={quickDay} onChange={(e) => setQuickDay(e.target.value)} style={selectStyle}>
-                  {dayOptions.map((d) => <option key={d} value={d}>{toFaDigits(d)}</option>)}
-                </select>
-              </div>
-              <button type="button" onClick={quickAddThisMonth} disabled={thisMonthAdded} style={{ ...secondaryBtn, flexShrink: 0, opacity: thisMonthAdded ? 0.5 : 1, cursor: thisMonthAdded ? 'default' : 'pointer' }}>
-                <Plus size={14} /> {thisMonthAdded ? `سررسید ${currentMonth} ثبت شده` : `سررسید ${currentMonth}`}
-              </button>
-            </div>
-          )}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12, color: COLORS.inkLight, padding: '8px 12px', borderTop: `1px solid ${COLORS.line}` }}>
+            <input type="checkbox" checked={!!plan.recurring} onChange={(e) => onSetRecurring(plan.id, e.target.checked)} />
+            ماهانه و بدون پایان (مثل باشگاه) — هر ماه سررسید داره و تسویه نمی‌شه
+          </label>
           <form onSubmit={submit} style={{ display: 'flex', gap: 6, padding: 10, borderTop: `1px solid ${COLORS.line}`, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <div style={{ flex: '2 1 120px' }}>
-              <FieldLabel>ماه شروع</FieldLabel>
+              <FieldLabel>ماه شروع (خالی = {currentMonth})</FieldLabel>
               <input value={month} onChange={(e) => setMonth(e.target.value)} placeholder="مثلاً: مهر ۱۴۰۵" style={inputStyle} />
             </div>
             <div style={{ flex: '1 1 70px' }}>
