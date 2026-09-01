@@ -15,6 +15,14 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
 
   function submit(e) {
     e.preventDefault();
+    const d = parseInt(toEnglishDigits(day), 10);
+    // Recurring never has a "starting month" or a batch count to pick —
+    // it's always just "this month, this day", added one month at a time.
+    if (plan.recurring) {
+      onAddDate(plan.id, currentMonth, d, 1);
+      setDay('1'); setError('');
+      return;
+    }
     // Blank month = current month, so this one form also covers the
     // common "just add this month's due date" case without a second,
     // separate day picker for that.
@@ -28,7 +36,6 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
     const year = info.year || monthInfo(currentMonth).year;
     if (!year) { setError('سال رو هم بنویس، مثلاً «مهر ۱۴۰۵».'); return; }
     const normalizedMonth = `${MONTHS[info.idx]} ${toFaDigits(year)}`;
-    const d = parseInt(toEnglishDigits(day), 10);
     const c = Math.max(1, parseInt(toEnglishDigits(count), 10) || 1);
     onAddDate(plan.id, normalizedMonth, d, c);
     setMonth(''); setDay('1'); setCount('1'); setError('');
@@ -58,7 +65,7 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ fontSize: 12, color: COLORS.inkLight }}>{remaining > 0 ? `${toFaDigits(remaining)} مونده` : (plan.recurring ? '' : 'تسویه')}</div>
+            <div style={{ fontSize: 12, color: COLORS.inkLight }}>{plan.recurring ? '' : (remaining > 0 ? `${toFaDigits(remaining)} مونده` : 'تسویه')}</div>
             <span role="button" tabIndex={0} aria-label="حذف قسط" onClick={(e) => { e.stopPropagation(); onDeletePlan(plan.id); }} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></span>
           </div>
         </div>
@@ -97,27 +104,40 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
             ماهانه و بدون پایان (مثل باشگاه) — هر ماه سررسید داره و تسویه نمی‌شه
           </label>
           <form onSubmit={submit} style={{ display: 'flex', gap: 6, padding: 10, borderTop: `1px solid ${COLORS.line}`, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div style={{ flex: '2 1 120px' }}>
-              <FieldLabel>ماه شروع (خالی = {currentMonth})</FieldLabel>
-              <input value={month} onChange={(e) => setMonth(e.target.value)} placeholder="مثلاً: مهر ۱۴۰۵" style={inputStyle} />
-            </div>
-            <div style={{ flex: '1 1 70px' }}>
-              <FieldLabel>روز</FieldLabel>
-              <select value={day} onChange={(e) => setDay(e.target.value)} style={selectStyle}>
-                {dayOptions.map((d) => <option key={d} value={d}>{toFaDigits(d)}</option>)}
-              </select>
-            </div>
-            <div style={{ flex: '1 1 70px' }}>
-              <FieldLabel>تعداد ماه</FieldLabel>
-              <input inputMode="numeric" value={count} onChange={(e) => setCount(e.target.value)} placeholder="۱" style={inputStyle} />
-            </div>
+            {plan.recurring ? (
+              <div style={{ flex: '1 1 90px' }}>
+                <FieldLabel>روز سررسید</FieldLabel>
+                <select value={day} onChange={(e) => setDay(e.target.value)} style={selectStyle}>
+                  {dayOptions.map((d) => <option key={d} value={d}>{toFaDigits(d)}</option>)}
+                </select>
+              </div>
+            ) : (
+              <>
+                <div style={{ flex: '2 1 120px' }}>
+                  <FieldLabel>ماه شروع (خالی = {currentMonth})</FieldLabel>
+                  <input value={month} onChange={(e) => setMonth(e.target.value)} placeholder="مثلاً: مهر ۱۴۰۵" style={inputStyle} />
+                </div>
+                <div style={{ flex: '1 1 70px' }}>
+                  <FieldLabel>روز</FieldLabel>
+                  <select value={day} onChange={(e) => setDay(e.target.value)} style={selectStyle}>
+                    {dayOptions.map((d) => <option key={d} value={d}>{toFaDigits(d)}</option>)}
+                  </select>
+                </div>
+                <div style={{ flex: '1 1 70px' }}>
+                  <FieldLabel>تعداد ماه</FieldLabel>
+                  <input inputMode="numeric" value={count} onChange={(e) => setCount(e.target.value)} placeholder="۱" style={inputStyle} />
+                </div>
+              </>
+            )}
             <button type="submit" style={{ ...secondaryBtn, flexShrink: 0 }}>
-              <Plus size={14} /> {Number(toEnglishDigits(count)) > 1 ? `افزودن ${toFaDigits(count)} ماه` : 'افزودن'}
+              <Plus size={14} /> {!plan.recurring && Number(toEnglishDigits(count)) > 1 ? `افزودن ${toFaDigits(count)} ماه` : 'افزودن'}
             </button>
           </form>
-          <div style={{ fontSize: 10.5, color: COLORS.inkLight, padding: '0 12px 8px' }}>
-            با تعداد ماه بیشتر از ۱، همون روز برای چند ماه پشت‌سرهم شروع از «ماه شروع» ثبت می‌شه.
-          </div>
+          {!plan.recurring && (
+            <div style={{ fontSize: 10.5, color: COLORS.inkLight, padding: '0 12px 8px' }}>
+              با تعداد ماه بیشتر از ۱، همون روز برای چند ماه پشت‌سرهم شروع از «ماه شروع» ثبت می‌شه.
+            </div>
+          )}
           {error && <div style={{ color: COLORS.expense, fontSize: 12, padding: '0 12px 10px' }}>{error}</div>}
         </>
       )}

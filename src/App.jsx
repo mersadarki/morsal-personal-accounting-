@@ -338,11 +338,13 @@ export default function App() {
   }
   // Parses one plan per line — "<amount> <day> <title...>" (amount accepts
   // the same X/Y shorthand as everywhere else) — for pasting in a whole
-  // month's worth of bills at once instead of adding each by hand. A title
-  // containing "تا مونده" (a fixed remaining count, e.g. "بیمه ثالث (۵ تا
-  // مونده)") is treated as fixed-term rather than recurring. New plans go
-  // on top of the existing list, each seeded with one due-date entry for
-  // the current month.
+  // month's worth of bills at once instead of adding each by hand. All
+  // bulk-added plans start as fixed-term (not recurring) — whether
+  // something never ends (like a gym membership) isn't something a title
+  // can reliably signal, so it's left for you to flip on per-plan
+  // afterward via the "ماهانه" checkbox on that plan. New plans go on top
+  // of the existing list, each seeded with one due-date entry for the
+  // current month.
   function bulkAddInstallmentPlans(rawText) {
     const lines = rawText.split('\n').map((l) => l.trim()).filter(Boolean);
     let nextId = installments.reduce((m, p) => Math.max(m, p.id || 0), 0);
@@ -354,9 +356,8 @@ export default function App() {
       const day = parseInt(toEnglishDigits(tokens[1]), 10);
       const title = tokens.slice(2).join(' ');
       if (isNaN(amt) || isNaN(day) || !title) return;
-      const recurring = !title.includes('تا مونده');
       nextId += 1;
-      parsed.push({ id: nextId, name: title, amount: amt, recurring, entries: [{ id: 1, m: currentMonth, dt: day, paid: false }] });
+      parsed.push({ id: nextId, name: title, amount: amt, recurring: false, entries: [{ id: 1, m: currentMonth, dt: day, paid: false }] });
     });
     if (parsed.length === 0) return;
     persistInstallments([...parsed, ...installments]);
