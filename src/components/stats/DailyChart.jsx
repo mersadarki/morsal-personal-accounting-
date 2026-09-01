@@ -12,8 +12,8 @@ export default function DailyChart({ data, title, color }) {
             <CartesianGrid strokeDasharray="3 3" stroke={COLORS.line} />
             <XAxis dataKey="day" tick={{ fontSize: 8, fill: COLORS.inkLight }} interval={0} angle={-90} textAnchor="end" height={28} />
             <YAxis tick={{ fontSize: 9, fill: COLORS.inkLight }} width={30} />
-            <Tooltip formatter={(v) => { const a = fmtUnit(v); return `${a.text} ${a.unit}`; }} contentStyle={{ fontFamily: 'Vazirmatn', fontSize: 11, direction: 'rtl' }} />
-            <Bar dataKey="amount" fill={color || COLORS.expense} radius={[3, 3, 0, 0]} />
+            <Tooltip formatter={(v) => { const a = fmtUnit(v); return [`${a.text} ${a.unit}`, 'مبلغ']; }} labelFormatter={(d) => `روز ${d}`} contentStyle={{ fontFamily: 'Vazirmatn', fontSize: 11, direction: 'rtl' }} />
+            <Bar dataKey="amount" name="مبلغ" fill={color || COLORS.expense} radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
