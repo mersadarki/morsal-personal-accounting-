@@ -169,7 +169,12 @@ export default function App() {
   }, [tx, statsMonth]);
 
   const nedaBreakdown = useMemo(() => {
-    const nedaRows = tx.filter((r) => r.t === 'e' && r.neda && !r.transfer && !r.loan && !isExcludedExpenseTitle(r.ti));
+    // No isExcludedExpenseTitle here: every row is already neda-only, and
+    // that heuristic exists to match the *main* ledger's own exclusion
+    // formula — Neda's free-text descriptions can contain "جابجایی"/"قرض"
+    // as ordinary words without meaning "skip this line" (same bug fixed
+    // in computeStatsRows).
+    const nedaRows = tx.filter((r) => r.t === 'e' && r.neda && !r.transfer && !r.loan);
     const byYear = new Map();
     nedaRows.forEach((r) => {
       const info = monthInfo(r.m);
