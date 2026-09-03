@@ -298,7 +298,7 @@ export default function App() {
   function quickAddBalance(account) {
     adjustBalance(currentMonth, account, 500);
     const dt = todayDay();
-    persistTx([...tx, { t: 'i', m: currentMonth, dt, acc: account, a: 500, ti: '', cat: 'vpn', id: uid(tx) }]);
+    persistTx([...tx, { t: 'i', m: currentMonth, dt, acc: account, a: 500, ti: '', cat: 'vpn', id: uid(tx), hm: nowHM() }]);
     setForm((f) => ({ ...f, t: 'i' }));
   }
 
