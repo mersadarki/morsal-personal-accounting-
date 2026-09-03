@@ -23,7 +23,7 @@ body {
 }
 
 .tabular { font-variant-numeric: tabular-nums; }
-.row:hover { background: #EAE2CC; }
+.row:hover { background: #E8E1D4; }
 
 /* Mobile input bug: iOS Safari auto-zooms on focus below 16px */
 input, select {
@@ -31,7 +31,7 @@ input, select {
   font-size: 16px;
 }
 
-::placeholder { color: #6b6353; opacity: 0.6; }
+::placeholder { color: #726b60; opacity: 0.6; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .animate-spin { animation: spin 1s linear infinite; }

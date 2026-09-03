@@ -10,7 +10,7 @@ for (const size of sizes) {
 // maskable icon: same art but with safe-zone padding (logo scaled down within a full-bleed background)
 await sharp('scripts/icon-source.svg')
   .resize(410, 410)
-  .extend({ top: 51, bottom: 51, left: 51, right: 51, background: '#1F3D34' })
+  .extend({ top: 51, bottom: 51, left: 51, right: 51, background: '#1C1B1A' })
   .png()
   .toFile('public/icons/icon-maskable-512.png');
 
