@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { COLORS } from './lib/constants';
-import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel } from './lib/format';
+import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM } from './lib/format';
 import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
@@ -23,7 +23,7 @@ import SettingsView from './components/settings/SettingsView';
 import BalanceFormModal from './components/settings/BalanceFormModal';
 
 const emptyBalForm = { month: '', 'ملی': '', 'ویپاد': '', 'اعتبار ملی': '', 'نقدی': '', 'دلار': '' };
-function emptyForm() { return { t: 'i', acc: 'ملی', a: '', ti: '', neda: false, transfer: false, loan: false, cat: 'vpn', dt: String(todayDay()) }; }
+function emptyForm() { return { t: 'i', acc: 'ملی', a: '', ti: '', neda: false, transfer: false, loan: false, noStats: false, cat: 'vpn', dt: String(todayDay()) }; }
 const DEFAULT_MONTH = 'شهریور ۱۴۰۵';
 
 export default function App() {
@@ -152,7 +152,7 @@ export default function App() {
 
   const dailyChartData = useMemo(() => {
     const days = Array.from({ length: 31 }, (_, i) => ({ day: toFaDigits(i + 1), amount: 0 }));
-    tx.filter((r) => r.m === statsMonth && r.t === 'e' && !r.transfer && !r.loan && !isExcludedExpenseTitle(r.ti) && r.dt).forEach((r) => {
+    tx.filter((r) => r.m === statsMonth && r.t === 'e' && !r.transfer && !r.loan && !r.noStats && !isExcludedExpenseTitle(r.ti) && r.dt).forEach((r) => {
       const idx = r.dt - 1;
       if (idx >= 0 && idx < 31) days[idx].amount += r.a || 0;
     });
@@ -174,7 +174,7 @@ export default function App() {
     // formula — Neda's free-text descriptions can contain "جابجایی"/"قرض"
     // as ordinary words without meaning "skip this line" (same bug fixed
     // in computeStatsRows).
-    const nedaRows = tx.filter((r) => r.t === 'e' && r.neda && !r.transfer && !r.loan);
+    const nedaRows = tx.filter((r) => r.t === 'e' && r.neda && !r.transfer && !r.loan && !r.noStats);
     const byYear = new Map();
     nedaRows.forEach((r) => {
       const info = monthInfo(r.m);
@@ -195,7 +195,7 @@ export default function App() {
 
   function openAdd() { setForm((f) => ({ ...emptyForm(), t: f.t })); setEditingId(null); setFormError(''); }
   function openEdit(r) {
-    setForm({ t: r.t, acc: r.acc, a: String(r.a), ti: r.ti || '', neda: !!r.neda, transfer: !!r.transfer, loan: !!r.loan, cat: r.cat || 'vpn', dt: r.dt != null ? String(r.dt) : String(todayDay()) });
+    setForm({ t: r.t, acc: r.acc, a: String(r.a), ti: r.ti || '', neda: !!r.neda, transfer: !!r.transfer, loan: !!r.loan, noStats: !!r.noStats, cat: r.cat || 'vpn', dt: r.dt != null ? String(r.dt) : String(todayDay()) });
     setEditingId(r.id); setFormError('');
     if (r.m && r.m !== currentMonth) persistMonth(r.m);
     setView('home');
@@ -227,7 +227,9 @@ export default function App() {
       const rec = { ...base, t: 'i', ti: '', cat: form.cat };
       if (editingId != null) {
         const oldRec = tx.find((r) => r.id === editingId);
-        persistTx(tx.map((r) => (r.id === editingId ? { ...rec, id: editingId } : r)));
+        // Merge onto the old row (not a full replace) so fields the form
+        // doesn't own — like the creation timestamp — survive an edit.
+        persistTx(tx.map((r) => (r.id === editingId ? { ...r, ...rec } : r)));
         const adjustments = oldRec ? [{ account: oldRec.acc, delta: -txBalanceDelta(oldRec) }] : [];
         adjustments.push({ account: form.acc, delta: amt });
         adjustBalances(currentMonth, adjustments);
@@ -237,19 +239,19 @@ export default function App() {
         // of transactions (the same bug already fixed for the quick-add
         // buttons), which is exactly what the grouped home-page list
         // needs to show correctly.
-        persistTx([...tx, { ...rec, id: uid(tx) }]);
+        persistTx([...tx, { ...rec, id: uid(tx), hm: nowHM() }]);
         adjustBalance(currentMonth, form.acc, amt);
       }
     } else {
-      const rec = { ...base, t: 'e', ti: form.ti.trim(), neda: form.neda };
+      const rec = { ...base, t: 'e', ti: form.ti.trim(), neda: form.neda, noStats: form.noStats };
       if (editingId != null) {
         const oldRec = tx.find((r) => r.id === editingId);
-        persistTx(tx.map((r) => (r.id === editingId ? { ...rec, id: editingId } : r)));
+        persistTx(tx.map((r) => (r.id === editingId ? { ...r, ...rec } : r)));
         const adjustments = oldRec ? [{ account: oldRec.acc, delta: -txBalanceDelta(oldRec) }] : [];
         adjustments.push({ account: form.acc, delta: -amt });
         adjustBalances(currentMonth, adjustments);
       } else {
-        persistTx([...tx, { ...rec, id: uid(tx) }]);
+        persistTx([...tx, { ...rec, id: uid(tx), hm: nowHM() }]);
         adjustBalance(currentMonth, form.acc, -amt);
       }
     }

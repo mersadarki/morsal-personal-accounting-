@@ -14,6 +14,14 @@ export function toFaDigits(n) {
   return String(n).replace(/[0-9]/g, (c) => fa[en.indexOf(c)]);
 }
 
+// Wall-clock "HH:MM" at the moment a transaction is created — recorded
+// automatically (not user-entered) so same-day entries can still be told
+// apart by exactly when they happened.
+export function nowHM() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 export function monthInfo(raw0) {
   const raw = (raw0 || '').trim();
   const yearMatch = toEnglishDigits(raw).match(/(1[34]\d{2})\s*$/);

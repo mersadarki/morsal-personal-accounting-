@@ -17,9 +17,10 @@ function TxRow({ r, onEdit, onDelete, confirmDeleteId, setConfirmDeleteId, inden
           {isExpense && r.neda && <span style={nedaBadge}>N</span>}
           {r.transfer && <span style={nedaBadge}>جابجایی</span>}
           {r.loan && <span style={nedaBadge}>قرض</span>}
+          {isExpense && r.noStats && <span style={nedaBadge}>بدون آمار</span>}
         </div>
         <div style={{ fontSize: 11, color: COLORS.inkLight }}>
-          {ACCOUNT_LABELS[r.acc] || r.acc}{r.dt ? ` · روز ${toFaDigits(r.dt)}` : ''}
+          {ACCOUNT_LABELS[r.acc] || r.acc}{r.dt ? ` · روز ${toFaDigits(r.dt)}` : ''}{r.hm ? ` · ${toFaDigits(r.hm)}` : ''}
         </div>
       </div>
       <div className="tabular" style={{ fontWeight: 700, fontSize: 13, color: isExpense ? COLORS.expense : COLORS.income, whiteSpace: 'nowrap' }}>

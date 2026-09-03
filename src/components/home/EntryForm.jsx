@@ -71,6 +71,12 @@ export default function EntryForm({ form, setForm, formError, editingId, titleSu
           <input type="checkbox" checked={form.loan} onChange={(e) => setForm((f) => ({ ...f, loan: e.target.checked, transfer: e.target.checked ? false : f.transfer }))} />
           قرض — نه هزینه نه درآمد، فقط موجودی حساب رو تغییر بده
         </label>
+        {form.t === 'e' && (
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 12.5 }}>
+            <input type="checkbox" checked={form.noStats} onChange={(e) => setForm((f) => ({ ...f, noStats: e.target.checked }))} />
+            فقط از موجودی کم شه — تو سود/زیان و آمار حساب نشه
+          </label>
+        )}
       </div>
       {form.t === 'e' && (
         <>

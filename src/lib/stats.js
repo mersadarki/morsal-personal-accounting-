@@ -8,6 +8,10 @@ export function computeStatsRows(rows) {
   let vpnNewGross = 0, vpnNewCost = 0;
   rows.forEach((r) => {
     if (r.t === 'e') {
+      // "فقط از موجودی کم شه" — a plain balance adjustment the user
+      // explicitly wants out of every stats calculation entirely (not just
+      // totalExpense), so it's checked before anything else is tallied.
+      if (r.noStats) return;
       // Tracked regardless of the exclusion below, since vpnNet/vpnNewProfit need them.
       if (isVpnPartnerTitle(r.ti)) vpnPartnerPayout += r.a || 0;
       if (isVpnNewExpenseTitle(r.ti)) vpnNewCost += r.a || 0;
