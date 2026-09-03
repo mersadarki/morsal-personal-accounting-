@@ -46,7 +46,6 @@ export default function App() {
   const [balError, setBalError] = useState('');
   const [editingBalMonth, setEditingBalMonth] = useState(null);
   const [showBalForm, setShowBalForm] = useState(false);
-  const [confirmDeleteBal, setConfirmDeleteBal] = useState(null);
   const [visibleCount, setVisibleCount] = useState(40);
   const [statsVisibleExpense, setStatsVisibleExpense] = useState(40);
   const [statsVisibleIncome, setStatsVisibleIncome] = useState(40);
@@ -289,7 +288,6 @@ export default function App() {
     persistBalances(next);
     setShowBalForm(false);
   }
-  function handleDeleteBalance(month) { const next = { ...balances }; delete next[month]; persistBalances(next); setConfirmDeleteBal(null); }
 
   // Always adds its own new row — merging into an existing same-day vpn
   // entry made the +500 tap look like it did nothing, since the number on
@@ -512,8 +510,6 @@ export default function App() {
             onDownloadBackup={handleDownloadBackup} onRestoreBackup={handleRestoreBackup} backupMsg={backupMsg} backupFileRef={backupFileRef}
             onExportOwnExpenses={handleExportOwnExpenses} onExportNedaExpenses={handleExportNedaExpenses}
             onExportDebts={handleExportDebts} onExportInstallments={handleExportInstallments} onExportAllExcel={handleExportAllExcel}
-            balances={balances} onEditBalance={openEditBalance}
-            confirmDeleteBal={confirmDeleteBal} setConfirmDeleteBal={setConfirmDeleteBal} onDeleteBalance={handleDeleteBalance}
             update={update}
           />
         )}

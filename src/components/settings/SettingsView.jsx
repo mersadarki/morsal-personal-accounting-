@@ -2,13 +2,11 @@ import { Download, Upload } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
 import { primaryBtn, secondaryBtn } from '../../lib/ui.jsx';
 import SettingsSection from './SettingsSection';
-import BalancesSection from './BalancesSection';
 import UpdateSection from './UpdateSection';
 
 export default function SettingsView({
   onDownloadBackup, onRestoreBackup, backupMsg, backupFileRef,
   onExportOwnExpenses, onExportNedaExpenses, onExportDebts, onExportInstallments, onExportAllExcel,
-  balances, onEditBalance, confirmDeleteBal, setConfirmDeleteBal, onDeleteBalance,
   update,
 }) {
   return (
@@ -46,11 +44,6 @@ export default function SettingsView({
           <button onClick={onExportInstallments} aria-label="خروجی اکسل قسط" style={{ ...secondaryBtn, padding: '7px 8px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}><Download size={13} /> قسط</button>
         </div>
       </SettingsSection>
-
-      <BalancesSection
-        balances={balances} onEdit={onEditBalance}
-        confirmDeleteBal={confirmDeleteBal} setConfirmDeleteBal={setConfirmDeleteBal} onDelete={onDeleteBalance}
-      />
     </div>
   );
 }
