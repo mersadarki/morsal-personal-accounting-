@@ -6,7 +6,7 @@ import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
 import { SEED_TX, SEED_BALANCES, SEED_DEBTS, SEED_INSTALLMENTS } from './lib/seed';
-import { downloadBackup, exportOwnExpenses, exportNedaExpenses, exportDebts, exportInstallments } from './lib/io';
+import { downloadBackup, exportOwnExpenses, exportNedaExpenses, exportDebts, exportInstallments, exportAllExcel } from './lib/io';
 import { fontStyle } from './lib/ui.jsx';
 import { useAppUpdate } from './lib/useAppUpdate';
 
@@ -419,6 +419,7 @@ export default function App() {
   function handleExportNedaExpenses() { exportNedaExpenses(tx, monthInfo); }
   function handleExportDebts() { exportDebts(debts); }
   function handleExportInstallments() { exportInstallments(installments); }
+  function handleExportAllExcel() { exportAllExcel(tx, monthInfo, debts, installments); }
   function handleDownloadBackup() { downloadBackup(tx, balances, debts, installments, currentMonth); }
 
   function handleRestoreBackup(e) {
@@ -510,7 +511,7 @@ export default function App() {
           <SettingsView
             onDownloadBackup={handleDownloadBackup} onRestoreBackup={handleRestoreBackup} backupMsg={backupMsg} backupFileRef={backupFileRef}
             onExportOwnExpenses={handleExportOwnExpenses} onExportNedaExpenses={handleExportNedaExpenses}
-            onExportDebts={handleExportDebts} onExportInstallments={handleExportInstallments}
+            onExportDebts={handleExportDebts} onExportInstallments={handleExportInstallments} onExportAllExcel={handleExportAllExcel}
             balances={balances} onEditBalance={openEditBalance}
             confirmDeleteBal={confirmDeleteBal} setConfirmDeleteBal={setConfirmDeleteBal} onDeleteBalance={handleDeleteBalance}
             update={update}

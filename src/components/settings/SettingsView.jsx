@@ -7,7 +7,7 @@ import UpdateSection from './UpdateSection';
 
 export default function SettingsView({
   onDownloadBackup, onRestoreBackup, backupMsg, backupFileRef,
-  onExportOwnExpenses, onExportNedaExpenses, onExportDebts, onExportInstallments,
+  onExportOwnExpenses, onExportNedaExpenses, onExportDebts, onExportInstallments, onExportAllExcel,
   balances, onEditBalance, confirmDeleteBal, setConfirmDeleteBal, onDeleteBalance,
   update,
 }) {
@@ -34,7 +34,11 @@ export default function SettingsView({
       </SettingsSection>
 
       <SettingsSection title="خروجی اکسل">
-        <div style={{ fontSize: 11.5, color: COLORS.inkLight, marginBottom: 10 }}>هر کدوم رو بزنید، همون بخش به‌صورت یه فایل اکسل جدا دانلود می‌شه — برای مشاهده/اشتراک‌گذاری، نه بازیابی.</div>
+        <div style={{ fontSize: 11.5, color: COLORS.inkLight, marginBottom: 10 }}>برای مشاهده/اشتراک‌گذاری، نه بازیابی.</div>
+        <button onClick={onExportAllExcel} style={{ ...primaryBtn, width: '100%', justifyContent: 'center', marginBottom: 10 }}>
+          <Download size={15} /> دانلود همه (یک فایل، ۴ شیت جدا)
+        </button>
+        <div style={{ fontSize: 11, color: COLORS.inkLight, marginBottom: 6 }}>یا هرکدوم به‌صورت فایل جدا:</div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'nowrap', overflowX: 'auto' }}>
           <button onClick={onExportOwnExpenses} aria-label="خروجی اکسل هزینه خودم" style={{ ...secondaryBtn, padding: '7px 8px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}><Download size={13} /> هزینه خودم</button>
           <button onClick={onExportNedaExpenses} aria-label="خروجی اکسل هزینه ندا" style={{ ...secondaryBtn, padding: '7px 8px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0 }}><Download size={13} /> هزینه ندا</button>
