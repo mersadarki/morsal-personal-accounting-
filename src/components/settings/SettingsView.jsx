@@ -8,7 +8,7 @@ import UpdateSection from './UpdateSection';
 export default function SettingsView({
   onDownloadBackup, onRestoreBackup, backupMsg, backupFileRef,
   onExportOwnExpenses, onExportNedaExpenses, onExportDebts, onExportInstallments,
-  balances, onAddBalance, onEditBalance, confirmDeleteBal, setConfirmDeleteBal, onDeleteBalance,
+  balances, onEditBalance, confirmDeleteBal, setConfirmDeleteBal, onDeleteBalance,
   update,
 }) {
   return (
@@ -44,7 +44,7 @@ export default function SettingsView({
       </SettingsSection>
 
       <BalancesSection
-        balances={balances} onAddNew={onAddBalance} onEdit={onEditBalance}
+        balances={balances} onEdit={onEditBalance}
         confirmDeleteBal={confirmDeleteBal} setConfirmDeleteBal={setConfirmDeleteBal} onDelete={onDeleteBalance}
       />
     </div>

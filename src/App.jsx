@@ -265,7 +265,6 @@ export default function App() {
     setConfirmDeleteId(null);
   }
 
-  function openAddBalance() { setBalForm({ ...emptyBalForm, month: currentMonth }); setEditingBalMonth(null); setBalError(''); setShowBalForm(true); }
   function openEditBalance(month) {
     const b = balances[month] || {};
     const next = { month };
@@ -512,7 +511,7 @@ export default function App() {
             onDownloadBackup={handleDownloadBackup} onRestoreBackup={handleRestoreBackup} backupMsg={backupMsg} backupFileRef={backupFileRef}
             onExportOwnExpenses={handleExportOwnExpenses} onExportNedaExpenses={handleExportNedaExpenses}
             onExportDebts={handleExportDebts} onExportInstallments={handleExportInstallments}
-            balances={balances} onAddBalance={openAddBalance} onEditBalance={openEditBalance}
+            balances={balances} onEditBalance={openEditBalance}
             confirmDeleteBal={confirmDeleteBal} setConfirmDeleteBal={setConfirmDeleteBal} onDeleteBalance={handleDeleteBalance}
             update={update}
           />

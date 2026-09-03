@@ -1,18 +1,15 @@
-import { Plus, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Pencil, Trash2, Check, X } from 'lucide-react';
 import { ACCOUNTS, ACCOUNT_LABELS, COLORS } from '../../lib/constants';
 import { monthInfo } from '../../lib/format';
-import { primaryBtn, iconBtn, Amount } from '../../lib/ui.jsx';
+import { iconBtn, Amount } from '../../lib/ui.jsx';
 import SettingsSection from './SettingsSection';
 
 export default function BalancesSection({
-  balances, onAddNew, onEdit, confirmDeleteBal, setConfirmDeleteBal, onDelete,
+  balances, onEdit, confirmDeleteBal, setConfirmDeleteBal, onDelete,
 }) {
   const entries = Object.entries(balances).sort((a, b) => (monthInfo(a[0]).sortKey < monthInfo(b[0]).sortKey ? 1 : -1));
   return (
     <SettingsSection title="موجودی پایان ماه">
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-        <button onClick={onAddNew} style={{ ...primaryBtn, padding: '8px 12px' }}><Plus size={15} /> ثبت ماه جدید</button>
-      </div>
       {entries.length === 0 && (
         <div style={{ padding: 20, textAlign: 'center', color: COLORS.inkLight, fontSize: 13 }}>هنوز موجودی‌ای ثبت نشده.</div>
       )}
