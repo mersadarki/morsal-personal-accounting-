@@ -3,14 +3,14 @@ import EntryForm from './EntryForm';
 import TransactionList from './TransactionList';
 
 export default function HomeView({
-  latestBalances, form, setForm, formError, editingId, titleSuggestions,
+  latestBalances, form, setForm, formError, editingId, submitFlash, titleSuggestions,
   onSubmit, onCancelEdit, listTx, visibleCount, setVisibleCount,
   saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete, onEditBalance,
 }) {
   return (
     <div>
       <EntryForm
-        form={form} setForm={setForm} formError={formError} editingId={editingId}
+        form={form} setForm={setForm} formError={formError} editingId={editingId} submitFlash={submitFlash}
         titleSuggestions={titleSuggestions} onSubmit={onSubmit} onCancelEdit={onCancelEdit}
       />
       <BalanceCards latestBalances={latestBalances} onEditBalance={onEditBalance} />

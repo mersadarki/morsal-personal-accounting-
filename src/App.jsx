@@ -40,6 +40,7 @@ export default function App() {
   const [form, setForm] = useState(emptyForm());
   const [formError, setFormError] = useState('');
   const [editingId, setEditingId] = useState(null);
+  const [submitFlash, setSubmitFlash] = useState(0);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [statsMonth, setStatsMonth] = useState('');
   const [balForm, setBalForm] = useState(emptyBalForm);
@@ -256,6 +257,7 @@ export default function App() {
     }
     setForm((f) => ({ ...emptyForm(), t: f.t }));
     setEditingId(null);
+    setSubmitFlash((n) => n + 1);
   }
   function handleDelete(id) {
     const rec = tx.find((r) => r.id === id);
@@ -464,7 +466,7 @@ export default function App() {
             <QuickBalanceButtons onQuickAdd={quickAddBalance} />
             <HomeView
               latestBalances={latestBalances}
-              form={form} setForm={setForm} formError={formError} editingId={editingId}
+              form={form} setForm={setForm} formError={formError} editingId={editingId} submitFlash={submitFlash}
               titleSuggestions={titleSuggestions} onSubmit={submitForm} onCancelEdit={openAdd}
               listTx={listTx} visibleCount={visibleCount} setVisibleCount={setVisibleCount}
               saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}

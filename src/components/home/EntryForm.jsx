@@ -1,11 +1,25 @@
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { TrendingDown, TrendingUp, Check } from 'lucide-react';
 import { ACCOUNTS, ACCOUNT_LABELS, INCOME_CATS, INCOME_CAT_LABELS, INCOME_QUICK, COLORS } from '../../lib/constants';
 import { FieldLabel, AmountPreview, AmountInput, inputStyle, selectStyle, primaryBtn, secondaryBtn, typeToggle, quickBtn } from '../../lib/ui.jsx';
 import { toFaDigits } from '../../lib/format';
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
-export default function EntryForm({ form, setForm, formError, editingId, titleSuggestions, onSubmit, onCancelEdit }) {
+export default function EntryForm({ form, setForm, formError, editingId, submitFlash, titleSuggestions, onSubmit, onCancelEdit }) {
+  // submitFlash increments once per successful submit (App.jsx) — briefly
+  // swap the button to a checkmark so a tap is unmistakably registered,
+  // same as the quick-add buttons above the balance cards.
+  const [confirmed, setConfirmed] = useState(false);
+  const timerRef = useRef(null);
+  useEffect(() => {
+    if (!submitFlash) return;
+    setConfirmed(true);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setConfirmed(false), 1300);
+    return () => clearTimeout(timerRef.current);
+  }, [submitFlash]);
+
   return (
     <form onSubmit={onSubmit} style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14, marginBottom: 16 }}>
       <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
@@ -89,8 +103,15 @@ export default function EntryForm({ form, setForm, formError, editingId, titleSu
       )}
 
       {formError && <div style={{ color: COLORS.expense, fontSize: 12, marginBottom: 8 }}>{formError}</div>}
-      <button type="submit" style={{ ...primaryBtn, width: '100%', justifyContent: 'center', padding: '10px 0' }}>
-        {editingId != null ? 'ذخیره تغییرات' : 'ثبت'}
+      <button
+        type="submit"
+        style={{
+          ...primaryBtn, width: '100%', justifyContent: 'center', padding: '10px 0',
+          transition: 'background 0.2s, color 0.2s, border-color 0.2s',
+          ...(confirmed ? { background: COLORS.incomeBg, color: COLORS.income, border: `1px solid ${COLORS.income}` } : null),
+        }}
+      >
+        {confirmed ? <><Check size={15} /> ثبت شد</> : (editingId != null ? 'ذخیره تغییرات' : 'ثبت')}
       </button>
       {editingId != null && (
         <button type="button" onClick={onCancelEdit} style={{ ...secondaryBtn, width: '100%', justifyContent: 'center', marginTop: 8 }}>انصراف از ویرایش</button>
