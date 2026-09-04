@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Loader2, ScanText } from 'lucide-react';
+import { Camera, Images, Loader2, ScanText } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
 import { splitTextIntoRows } from '../../lib/importParse';
 import { inputStyle, primaryBtn, secondaryBtn } from '../../lib/ui.jsx';
@@ -65,10 +65,18 @@ export default function PhotoOCRUpload({ onParsed }) {
       <div style={{ fontSize: 11.5, color: COLORS.inkLight, marginBottom: 10, lineHeight: 1.9 }}>
         عکس فقط لحظه‌ای برای تشخیص متن استفاده می‌شه و هیچ‌جا ذخیره نمی‌مونه — فقط متنی که ازش خونده می‌شه باقی می‌مونه تا خودت تأییدش کنی. بار اول استفاده، بسته‌ی زبان (چند مگابایت) دانلود می‌شه؛ دفعات بعد سریع‌تره.
       </div>
-      <label style={{ ...secondaryBtn, cursor: busy ? 'default' : 'pointer', display: 'inline-flex', opacity: busy ? 0.6 : 1 }}>
-        <Camera size={15} /> انتخاب / گرفتن عکس
-        <input type="file" accept="image/*" capture="environment" onChange={handleFile} disabled={busy} style={{ display: 'none' }} />
-      </label>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <label style={{ ...secondaryBtn, cursor: busy ? 'default' : 'pointer', display: 'inline-flex', opacity: busy ? 0.6 : 1 }}>
+          <Camera size={15} /> گرفتن عکس
+          {/* capture="environment" opens the camera directly on mobile */}
+          <input type="file" accept="image/*" capture="environment" onChange={handleFile} disabled={busy} style={{ display: 'none' }} />
+        </label>
+        <label style={{ ...secondaryBtn, cursor: busy ? 'default' : 'pointer', display: 'inline-flex', opacity: busy ? 0.6 : 1 }}>
+          <Images size={15} /> انتخاب از گالری
+          {/* no capture attribute — opens the normal file/photo picker */}
+          <input type="file" accept="image/*" onChange={handleFile} disabled={busy} style={{ display: 'none' }} />
+        </label>
+      </div>
 
       {previewUrl && (
         <div style={{ marginTop: 8 }}>
