@@ -3,8 +3,10 @@ import { Check, Trash2, X } from 'lucide-react';
 import { COLORS, MONTHS, SHOP_CATEGORY_LABELS } from '../../lib/constants';
 import { toFaDigits } from '../../lib/format';
 import { jalaliToISO, toJalaali, todayJalali } from '../../lib/jalali';
+import { SHOP_ARCHIVE_IMPORT_SCHEMA } from '../../lib/importSchemas';
 import { addArchiveTotals, computeSalesTotals, isoDaysAgo } from '../../lib/shopStats';
 import { Amount, FieldLabel, iconBtn, selectStyle, subTabStyle } from '../../lib/ui.jsx';
+import ImportWizard from '../import/ImportWizard';
 import StatCard from '../stats/StatCard';
 import ArchiveForm from './ArchiveForm';
 import JalaliDateFields from './JalaliDateFields';
@@ -23,7 +25,7 @@ function TotalsGrid({ totals }) {
   );
 }
 
-export default function ShopStatsView({ sales, archives, onAddArchive, onDeleteArchive, onDeleteSale }) {
+export default function ShopStatsView({ sales, archives, onAddArchive, onImportArchives, onDeleteArchive, onDeleteSale }) {
   const today = todayJalali();
   const [tab, setTab] = useState('monthly');
   const [day, setDay] = useState(() => ({ ...today }));
@@ -151,6 +153,10 @@ export default function ShopStatsView({ sales, archives, onAddArchive, onDeleteA
       {tab === 'archive' && (
         <>
           <ArchiveForm onAdd={onAddArchive} />
+          <ImportWizard
+            schema={SHOP_ARCHIVE_IMPORT_SCHEMA} onImport={onImportArchives}
+            description="آمار سال‌های قبل رو یک‌جا از یه فایل اکسل یا عکسِ دفتر/جدول قدیمی وارد کن — ستون‌ها رو خودت مشخص می‌کنی و قبل از ثبت نهایی همه‌چیز رو می‌بینی و می‌تونی درستش کنی."
+          />
           <div style={{ fontSize: 12, color: COLORS.inkLight, marginBottom: 8 }}>ردیف‌های ثبت‌شده ({toFaDigits(archives.length)})</div>
           <div style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, overflow: 'hidden' }}>
             {archives.length === 0 && <div style={{ padding: 24, textAlign: 'center', color: COLORS.inkLight, fontSize: 13 }}>هنوز آماری از سال‌های قبل اضافه نشده.</div>}

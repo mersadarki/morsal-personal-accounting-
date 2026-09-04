@@ -290,6 +290,23 @@ export default function App() {
     setConfirmDeleteId(null);
   }
 
+  // Bulk-import path (Excel/photo wizard) for historical rows — like
+  // restoring from backup, this only appends tx rows and never touches
+  // balances: those are a per-month snapshot the user tracks separately,
+  // so backfilling an old month must never nudge the *current* month's
+  // balance the way a normal live entry would.
+  function importLedgerTx(records) {
+    if (records.length === 0) return;
+    let nextId = tx.reduce((m, r) => Math.max(m, r.id || 0), 0);
+    const rows = records.map((r) => {
+      nextId += 1;
+      const base = { id: nextId, t: r.type, acc: r.account, a: r.amount, m: r.month, dt: r.day || null, hm: nowHM() };
+      if (r.type === 'e') return { ...base, ti: (r.title || '').trim(), neda: r.neda === 'yes', transfer: false, loan: false, noStats: false };
+      return { ...base, ti: '', cat: r.incomeCat || 'khadamat', transfer: false, loan: false };
+    });
+    persistTx([...tx, ...rows]);
+  }
+
   function openEditBalance(month) {
     const b = balances[month] || {};
     const next = { month };
@@ -503,6 +520,15 @@ export default function App() {
   }
 
   function addShopArchive(entry) { persistShopArchives([...shopArchives, { ...entry, id: uid(shopArchives), createdAt: Date.now() }]); }
+  // Bulk-import path (Excel/photo wizard) — one persist for the whole
+  // batch instead of one per row, and ids assigned off a running max so
+  // rows within the same batch never collide.
+  function importShopArchives(entries) {
+    if (entries.length === 0) return;
+    let nextId = shopArchives.reduce((m, a) => Math.max(m, a.id || 0), 0);
+    const rows = entries.map((entry) => { nextId += 1; return { ...entry, id: nextId, createdAt: Date.now() }; });
+    persistShopArchives([...shopArchives, ...rows]);
+  }
   function deleteShopArchive(id) { persistShopArchives(shopArchives.filter((a) => a.id !== id)); }
   function updateShopSettings(updates) { persistShopSettings({ ...shopSettings, ...updates }); }
 
@@ -613,7 +639,7 @@ export default function App() {
             products={shopProducts} sales={shopSales} archives={shopArchives} shopSettings={shopSettings}
             onAddProduct={addShopProduct} onRestockProduct={restockShopProduct} onEditProduct={editShopProduct} onDeleteProduct={deleteShopProduct}
             onAddSale={addShopSale} onDeleteSale={deleteShopSale}
-            onAddArchive={addShopArchive} onDeleteArchive={deleteShopArchive}
+            onAddArchive={addShopArchive} onImportArchives={importShopArchives} onDeleteArchive={deleteShopArchive}
             onUpdateShopSettings={updateShopSettings}
           />
         )}
@@ -623,6 +649,7 @@ export default function App() {
             onDownloadBackup={handleDownloadBackup} onRestoreBackup={handleRestoreBackup} backupMsg={backupMsg} backupFileRef={backupFileRef}
             onExportOwnExpenses={handleExportOwnExpenses} onExportNedaExpenses={handleExportNedaExpenses}
             onExportDebts={handleExportDebts} onExportInstallments={handleExportInstallments} onExportAllExcel={handleExportAllExcel}
+            onImportTx={importLedgerTx}
             update={update}
           />
         )}

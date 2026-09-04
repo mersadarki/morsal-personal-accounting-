@@ -10,7 +10,7 @@ export default function ShopView({
   products, sales, archives, shopSettings,
   onAddProduct, onRestockProduct, onEditProduct, onDeleteProduct,
   onAddSale, onDeleteSale,
-  onAddArchive, onDeleteArchive,
+  onAddArchive, onImportArchives, onDeleteArchive,
   onUpdateShopSettings,
 }) {
   return (
@@ -33,7 +33,7 @@ export default function ShopView({
         <InventoryView category="accessory" products={products} shopSettings={shopSettings} onAddNew={onAddProduct} onRestock={onRestockProduct} onEdit={onEditProduct} onDelete={onDeleteProduct} />
       )}
       {shopTab === 'stats' && (
-        <ShopStatsView sales={sales} archives={archives} onAddArchive={onAddArchive} onDeleteArchive={onDeleteArchive} onDeleteSale={onDeleteSale} />
+        <ShopStatsView sales={sales} archives={archives} onAddArchive={onAddArchive} onImportArchives={onImportArchives} onDeleteArchive={onDeleteArchive} onDeleteSale={onDeleteSale} />
       )}
       {shopTab === 'settings' && <ShopSettingsView shopSettings={shopSettings} onUpdate={onUpdateShopSettings} />}
     </div>
