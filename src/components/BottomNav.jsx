@@ -1,9 +1,10 @@
-import { Home, BarChart3, HandCoins, Repeat, Settings as SettingsIcon } from 'lucide-react';
+import { Home, BarChart3, HandCoins, Repeat, Store, Settings as SettingsIcon } from 'lucide-react';
 import { COLORS } from '../lib/constants';
 
 const TABS = [
   { key: 'home', label: 'خانه', Icon: Home },
   { key: 'stats', label: 'آمار', Icon: BarChart3 },
+  { key: 'shop', label: 'فروشگاه', Icon: Store },
   { key: 'debts', label: 'بدهی', Icon: HandCoins },
   { key: 'installments', label: 'قسط', Icon: Repeat },
   { key: 'settings', label: 'تنظیمات', Icon: SettingsIcon },

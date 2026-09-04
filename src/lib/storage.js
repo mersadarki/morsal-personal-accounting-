@@ -8,6 +8,11 @@ export const BAL_KEY = 'ledger-balances-v1';
 export const MONTH_KEY = 'ledger-current-month-v1';
 export const DEBTS_KEY = 'ledger-debts-v1';
 export const INSTALLMENTS_KEY = 'ledger-installments-v1';
+export const SHOP_PRODUCTS_KEY = 'shop-products-v1';
+export const SHOP_SALES_KEY = 'shop-sales-v1';
+export const SHOP_PURCHASES_KEY = 'shop-purchases-v1';
+export const SHOP_ARCHIVES_KEY = 'shop-archives-v1';
+export const SHOP_SETTINGS_KEY = 'shop-settings-v1';
 
 export function storageGet(key) {
   try {
