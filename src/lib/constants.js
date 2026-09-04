@@ -16,3 +16,10 @@ export const INCOME_CATS = ['vpn', 'vpnNew', 'kapitan', 'khadamat', 'transfer'];
 export const INCOME_CAT_LABELS = { vpn: 'وی‌پی‌ان', vpnNew: 'وی‌پی‌ان نیو', kapitan: 'کاپیتان', khadamat: 'خدمات', transfer: 'جابجایی (بدون درآمد واقعی)' };
 export const MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
 export const INCOME_QUICK = [{ label: '۵۰۰ هزار تومان', val: '500' }, { label: '۱ میلیون تومان', val: '1000' }];
+
+// Shop module (phone + accessory inventory/sales) — separate domain from
+// the personal ledger above, kept in its own constants for clarity.
+export const SHOP_CATEGORIES = ['phone', 'accessory'];
+export const SHOP_CATEGORY_LABELS = { phone: 'گوشی', accessory: 'لوازم جانبی' };
+export const DEFAULT_SHOP_SETTINGS = { cipherKey: 'SOLARMIXED', phonePrefix: 'G', accessoryPrefix: 'A' };
+export const LOW_STOCK_THRESHOLD = 2;

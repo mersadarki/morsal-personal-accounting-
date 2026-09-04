@@ -66,3 +66,19 @@ export function tomorrowJalali() {
   d.setDate(d.getDate() + 1);
   return toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
 }
+
+// Jalali -> absolute day number (Julian Day Number), same formula as
+// jalaali-js's j2d — used to convert a Jalali date to a Gregorian one
+// without a second round of leap-year lookups.
+function j2d(jy, jm, jd) {
+  const r = jalCal(jy);
+  return g2d(r.gy, 3, r.march) + (jm - 1) * 31 - jdiv(jm, 7) * (jm - 7) + jd - 1;
+}
+export function toGregorian(jy, jm, jd) { return d2g(j2d(jy, jm, jd)); }
+// Gregorian-anchored ISO date string ("YYYY-MM-DD") for a Jalali date —
+// used purely for native Date-based range math (e.g. "last 7 days"),
+// never shown to the user.
+export function jalaliToISO(jy, jm, jd) {
+  const g = toGregorian(jy, jm, jd);
+  return `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}`;
+}

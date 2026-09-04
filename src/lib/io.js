@@ -96,13 +96,14 @@ export async function exportAllExcel(tx, monthInfo, debts, installments) {
   downloadBlob(wbout, 'دفتر-حساب-همه.xlsx', 'application/octet-stream');
 }
 
-export function downloadBackup(tx, balances, debts, installments, currentMonth) {
+export function downloadBackup(tx, balances, debts, installments, currentMonth, shop) {
   const payload = {
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     appUrl: APP_URL,
     repoUrl: REPO_URL,
     tx, balances, debts, installments, currentMonth,
+    ...(shop || {}),
   };
   downloadBlob(JSON.stringify(payload, null, 2), `پشتیبان-دفتر-حساب-${Date.now()}.json`, 'application/json');
 }

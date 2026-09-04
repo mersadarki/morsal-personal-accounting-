@@ -1,12 +1,15 @@
 import { Download, Upload } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
+import { LEDGER_TX_IMPORT_SCHEMA } from '../../lib/importSchemas';
 import { primaryBtn, secondaryBtn } from '../../lib/ui.jsx';
+import ImportWizard from '../import/ImportWizard';
 import SettingsSection from './SettingsSection';
 import UpdateSection from './UpdateSection';
 
 export default function SettingsView({
   onDownloadBackup, onRestoreBackup, backupMsg, backupFileRef,
   onExportOwnExpenses, onExportNedaExpenses, onExportDebts, onExportInstallments, onExportAllExcel,
+  onImportTx,
   update,
 }) {
   return (
@@ -29,6 +32,13 @@ export default function SettingsView({
           </label>
         </div>
         {backupMsg && <div style={{ marginTop: 8, fontSize: 12, color: COLORS.inkLight }}>{backupMsg}</div>}
+      </SettingsSection>
+
+      <SettingsSection title="درون‌ریزی هزینه/درآمد از سال‌های قبل">
+        <ImportWizard
+          schema={LEDGER_TX_IMPORT_SCHEMA} onImport={onImportTx}
+          description="تراکنش‌های قدیمی که تا الان اکسلی یا روی کاغذ بودن رو یک‌جا وارد کن — از فایل اکسل یا از عکس. موجودی حساب فعلی دست‌نخورده می‌مونه، این فقط ردیف‌های هزینه/درآمد رو برای همون ماهی که مشخص می‌کنی اضافه می‌کنه."
+        />
       </SettingsSection>
 
       <SettingsSection title="خروجی اکسل">

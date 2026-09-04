@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
-import { COLORS } from './lib/constants';
+import { COLORS, DEFAULT_SHOP_SETTINGS } from './lib/constants';
 import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM } from './lib/format';
 import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
-import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
+import {
+  TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY,
+  SHOP_PRODUCTS_KEY, SHOP_SALES_KEY, SHOP_PURCHASES_KEY, SHOP_ARCHIVES_KEY, SHOP_SETTINGS_KEY,
+  storageGet, storageSet,
+} from './lib/storage';
 import { computeStatsRows } from './lib/stats';
 import { SEED_TX, SEED_BALANCES, SEED_DEBTS, SEED_INSTALLMENTS } from './lib/seed';
 import { downloadBackup, exportOwnExpenses, exportNedaExpenses, exportDebts, exportInstallments, exportAllExcel } from './lib/io';
@@ -21,6 +25,7 @@ import DebtsView from './components/debts/DebtsView';
 import InstallmentsView from './components/installments/InstallmentsView';
 import SettingsView from './components/settings/SettingsView';
 import BalanceFormModal from './components/settings/BalanceFormModal';
+import ShopView from './components/shop/ShopView';
 
 const emptyBalForm = { month: '', 'ملی': '', 'ویپاد': '', 'اعتبار ملی': '', 'نقدی': '', 'دلار': '' };
 function emptyForm() { return { t: 'i', acc: 'ملی', a: '', ti: '', neda: false, transfer: false, loan: false, noStats: false, cat: 'vpn', dt: String(todayDay()) }; }
@@ -31,6 +36,12 @@ export default function App() {
   const [balances, setBalances] = useState({});
   const [debts, setDebts] = useState([]);
   const [installments, setInstallments] = useState([]);
+  const [shopProducts, setShopProducts] = useState([]);
+  const [shopSales, setShopSales] = useState([]);
+  const [shopPurchases, setShopPurchases] = useState([]);
+  const [shopArchives, setShopArchives] = useState([]);
+  const [shopSettings, setShopSettings] = useState(DEFAULT_SHOP_SETTINGS);
+  const [shopTab, setShopTab] = useState('daily');
   const [currentMonth, setCurrentMonth] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -83,6 +94,14 @@ export default function App() {
       if (rawI) setInstallments(JSON.parse(rawI));
       else { setInstallments(SEED_INSTALLMENTS); storageSet(INSTALLMENTS_KEY, JSON.stringify(SEED_INSTALLMENTS)); }
     } catch { setInstallments(SEED_INSTALLMENTS); }
+    try { const raw = storageGet(SHOP_PRODUCTS_KEY); setShopProducts(raw ? JSON.parse(raw) : []); } catch { setShopProducts([]); }
+    try { const raw = storageGet(SHOP_SALES_KEY); setShopSales(raw ? JSON.parse(raw) : []); } catch { setShopSales([]); }
+    try { const raw = storageGet(SHOP_PURCHASES_KEY); setShopPurchases(raw ? JSON.parse(raw) : []); } catch { setShopPurchases([]); }
+    try { const raw = storageGet(SHOP_ARCHIVES_KEY); setShopArchives(raw ? JSON.parse(raw) : []); } catch { setShopArchives([]); }
+    try {
+      const raw = storageGet(SHOP_SETTINGS_KEY);
+      setShopSettings(raw ? { ...DEFAULT_SHOP_SETTINGS, ...JSON.parse(raw) } : DEFAULT_SHOP_SETTINGS);
+    } catch { setShopSettings(DEFAULT_SHOP_SETTINGS); }
     setLoading(false);
   }
 
@@ -91,6 +110,11 @@ export default function App() {
   function persistMonth(m) { setCurrentMonth(m); storageSet(MONTH_KEY, m); }
   function persistDebts(next) { setDebts(next); storageSet(DEBTS_KEY, JSON.stringify(next)); }
   function persistInstallments(next) { setInstallments(next); storageSet(INSTALLMENTS_KEY, JSON.stringify(next)); }
+  function persistShopProducts(next) { setShopProducts(next); storageSet(SHOP_PRODUCTS_KEY, JSON.stringify(next)); }
+  function persistShopSales(next) { setShopSales(next); storageSet(SHOP_SALES_KEY, JSON.stringify(next)); }
+  function persistShopPurchases(next) { setShopPurchases(next); storageSet(SHOP_PURCHASES_KEY, JSON.stringify(next)); }
+  function persistShopArchives(next) { setShopArchives(next); storageSet(SHOP_ARCHIVES_KEY, JSON.stringify(next)); }
+  function persistShopSettings(next) { setShopSettings(next); storageSet(SHOP_SETTINGS_KEY, JSON.stringify(next)); }
 
   const monthOptions = useMemo(() => {
     const map = new Map();
@@ -266,6 +290,23 @@ export default function App() {
     setConfirmDeleteId(null);
   }
 
+  // Bulk-import path (Excel/photo wizard) for historical rows — like
+  // restoring from backup, this only appends tx rows and never touches
+  // balances: those are a per-month snapshot the user tracks separately,
+  // so backfilling an old month must never nudge the *current* month's
+  // balance the way a normal live entry would.
+  function importLedgerTx(records) {
+    if (records.length === 0) return;
+    let nextId = tx.reduce((m, r) => Math.max(m, r.id || 0), 0);
+    const rows = records.map((r) => {
+      nextId += 1;
+      const base = { id: nextId, t: r.type, acc: r.account, a: r.amount, m: r.month, dt: r.day || null, hm: nowHM() };
+      if (r.type === 'e') return { ...base, ti: (r.title || '').trim(), neda: r.neda === 'yes', transfer: false, loan: false, noStats: false };
+      return { ...base, ti: '', cat: r.incomeCat || 'khadamat', transfer: false, loan: false };
+    });
+    persistTx([...tx, ...rows]);
+  }
+
   function openEditBalance(month) {
     const b = balances[month] || {};
     const next = { month };
@@ -415,12 +456,92 @@ export default function App() {
   }
   function deleteInstallmentPlan(planId) { persistInstallments(installments.filter((p) => p.id !== planId)); }
 
+  // Adding a brand-new product also logs its initial stock as a purchase
+  // record (unless qty is 0) — so "enter a phone with its purchase price"
+  // always shows up in the purchase/profit history, not just as a silent
+  // starting number on the product itself.
+  function addShopProduct(data) {
+    const id = uid(shopProducts);
+    const qty = data.qty > 0 ? data.qty : 0;
+    const product = {
+      id, category: data.category, name: data.name, code: data.code || '',
+      purchasePrice: data.purchasePrice || 0, salePrice: data.salePrice != null ? data.salePrice : null,
+      stock: qty, note: data.note || '', archived: false, createdAt: Date.now(), updatedAt: Date.now(),
+    };
+    persistShopProducts([...shopProducts, product]);
+    if (qty > 0) {
+      const purchase = {
+        id: uid(shopPurchases), productId: id, productName: product.name, category: product.category,
+        qty, unitPrice: product.purchasePrice, totalPrice: qty * product.purchasePrice,
+        jy: data.jy, jm: data.jm, jd: data.jd, m: data.m, dt: data.dt, note: 'موجودی اولیه', createdAt: Date.now(),
+      };
+      persistShopPurchases([...shopPurchases, purchase]);
+    }
+  }
+  function restockShopProduct(productId, data) {
+    const product = shopProducts.find((p) => p.id === productId);
+    if (!product) return;
+    const purchase = {
+      id: uid(shopPurchases), productId, productName: product.name, category: product.category,
+      qty: data.qty, unitPrice: data.unitPrice, totalPrice: data.qty * data.unitPrice,
+      jy: data.jy, jm: data.jm, jd: data.jd, m: data.m, dt: data.dt, note: data.note || '', createdAt: Date.now(),
+    };
+    persistShopPurchases([...shopPurchases, purchase]);
+    const updates = { stock: (product.stock || 0) + data.qty, purchasePrice: data.unitPrice, updatedAt: Date.now() };
+    if (data.salePrice != null) updates.salePrice = data.salePrice;
+    persistShopProducts(shopProducts.map((p) => (p.id === productId ? { ...p, ...updates } : p)));
+  }
+  function editShopProduct(productId, updates) {
+    persistShopProducts(shopProducts.map((p) => (p.id === productId ? { ...p, ...updates, updatedAt: Date.now() } : p)));
+  }
+  function deleteShopProduct(productId) { persistShopProducts(shopProducts.filter((p) => p.id !== productId)); }
+
+  function addShopSale(data) {
+    const product = shopProducts.find((p) => p.id === data.productId);
+    if (!product) return;
+    const unitPurchasePrice = product.purchasePrice || 0;
+    const totalSale = data.qty * data.unitSalePrice;
+    const totalProfit = data.qty * (data.unitSalePrice - unitPurchasePrice);
+    const rec = {
+      id: uid(shopSales), productId: product.id, productName: product.name, category: product.category, code: product.code,
+      qty: data.qty, unitSalePrice: data.unitSalePrice, unitPurchasePrice, totalSale, totalProfit,
+      jy: data.jy, jm: data.jm, jd: data.jd, m: data.m, dt: data.dt, hm: nowHM(), createdAt: Date.now(),
+    };
+    persistShopSales([...shopSales, rec]);
+    persistShopProducts(shopProducts.map((p) => (p.id === product.id ? { ...p, stock: (p.stock || 0) - data.qty, updatedAt: Date.now() } : p)));
+  }
+  function deleteShopSale(id) {
+    const rec = shopSales.find((r) => r.id === id);
+    if (rec) {
+      const product = shopProducts.find((p) => p.id === rec.productId);
+      if (product) persistShopProducts(shopProducts.map((p) => (p.id === product.id ? { ...p, stock: (p.stock || 0) + rec.qty, updatedAt: Date.now() } : p)));
+    }
+    persistShopSales(shopSales.filter((r) => r.id !== id));
+  }
+
+  function addShopArchive(entry) { persistShopArchives([...shopArchives, { ...entry, id: uid(shopArchives), createdAt: Date.now() }]); }
+  // Bulk-import path (Excel/photo wizard) — one persist for the whole
+  // batch instead of one per row, and ids assigned off a running max so
+  // rows within the same batch never collide.
+  function importShopArchives(entries) {
+    if (entries.length === 0) return;
+    let nextId = shopArchives.reduce((m, a) => Math.max(m, a.id || 0), 0);
+    const rows = entries.map((entry) => { nextId += 1; return { ...entry, id: nextId, createdAt: Date.now() }; });
+    persistShopArchives([...shopArchives, ...rows]);
+  }
+  function deleteShopArchive(id) { persistShopArchives(shopArchives.filter((a) => a.id !== id)); }
+  function updateShopSettings(updates) { persistShopSettings({ ...shopSettings, ...updates }); }
+
   function handleExportOwnExpenses() { exportOwnExpenses(tx, monthInfo); }
   function handleExportNedaExpenses() { exportNedaExpenses(tx, monthInfo); }
   function handleExportDebts() { exportDebts(debts); }
   function handleExportInstallments() { exportInstallments(installments); }
   function handleExportAllExcel() { exportAllExcel(tx, monthInfo, debts, installments); }
-  function handleDownloadBackup() { downloadBackup(tx, balances, debts, installments, currentMonth); }
+  function handleDownloadBackup() {
+    downloadBackup(tx, balances, debts, installments, currentMonth, {
+      shopProducts, shopSales, shopPurchases, shopArchives, shopSettings,
+    });
+  }
 
   function handleRestoreBackup(e) {
     const file = e.target.files && e.target.files[0];
@@ -436,6 +557,11 @@ export default function App() {
         if (data.debts) persistDebts(data.debts);
         if (data.installments) persistInstallments(data.installments);
         if (data.currentMonth) persistMonth(data.currentMonth);
+        if (data.shopProducts) persistShopProducts(data.shopProducts);
+        if (data.shopSales) persistShopSales(data.shopSales);
+        if (data.shopPurchases) persistShopPurchases(data.shopPurchases);
+        if (data.shopArchives) persistShopArchives(data.shopArchives);
+        if (data.shopSettings) persistShopSettings({ ...DEFAULT_SHOP_SETTINGS, ...data.shopSettings });
         setBackupMsg('بازیابی با موفقیت انجام شد.');
       } catch { setBackupMsg('خطا در خواندن فایل پشتیبان.'); }
     };
@@ -458,7 +584,7 @@ export default function App() {
     <div dir="rtl" style={{ ...fontStyle, background: COLORS.paper, minHeight: '100vh', color: COLORS.ink }}>
       <Header />
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '18px 16px', paddingBottom: 'calc(84px + env(safe-area-inset-bottom))' }}>
-        <CurrentMonthBar currentMonth={currentMonth} onChange={persistMonth} />
+        {view !== 'shop' && <CurrentMonthBar currentMonth={currentMonth} onChange={persistMonth} />}
 
         {view === 'home' && (
           <>
@@ -507,11 +633,23 @@ export default function App() {
           />
         )}
 
+        {view === 'shop' && (
+          <ShopView
+            shopTab={shopTab} setShopTab={setShopTab}
+            products={shopProducts} sales={shopSales} archives={shopArchives} shopSettings={shopSettings}
+            onAddProduct={addShopProduct} onRestockProduct={restockShopProduct} onEditProduct={editShopProduct} onDeleteProduct={deleteShopProduct}
+            onAddSale={addShopSale} onDeleteSale={deleteShopSale}
+            onAddArchive={addShopArchive} onImportArchives={importShopArchives} onDeleteArchive={deleteShopArchive}
+            onUpdateShopSettings={updateShopSettings}
+          />
+        )}
+
         {view === 'settings' && (
           <SettingsView
             onDownloadBackup={handleDownloadBackup} onRestoreBackup={handleRestoreBackup} backupMsg={backupMsg} backupFileRef={backupFileRef}
             onExportOwnExpenses={handleExportOwnExpenses} onExportNedaExpenses={handleExportNedaExpenses}
             onExportDebts={handleExportDebts} onExportInstallments={handleExportInstallments} onExportAllExcel={handleExportAllExcel}
+            onImportTx={importLedgerTx}
             update={update}
           />
         )}
