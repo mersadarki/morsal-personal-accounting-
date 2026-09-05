@@ -34,10 +34,22 @@ export default function QuickBalanceButtons({ onQuickAdd }) {
   return (
     <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
       <button onClick={() => handleClick('ملی')} style={btnStyle('ملی', confirmed === 'ملی')}>
-        {confirmed === 'ملی' ? <><Check size={13} /> اضافه شد</> : <><Landmark size={13} /> ۵۰۰ به ملی</>}
+        {confirmed === 'ملی' ? <><Check size={13} /> اضافه شد</> : (
+          <>
+            <Landmark size={14} />
+            <span style={{ fontWeight: 500, fontSize: 11.5 }}>۵۰۰ به</span>
+            <span style={{ fontWeight: 800, fontSize: 15 }}>ملی</span>
+          </>
+        )}
       </button>
       <button onClick={() => handleClick('ویپاد')} style={btnStyle('ویپاد', confirmed === 'ویپاد')}>
-        {confirmed === 'ویپاد' ? <><Check size={13} /> اضافه شد</> : <><Wallet size={13} /> ۵۰۰ به ویپاد</>}
+        {confirmed === 'ویپاد' ? <><Check size={13} /> اضافه شد</> : (
+          <>
+            <Wallet size={14} />
+            <span style={{ fontWeight: 500, fontSize: 11.5 }}>۵۰۰ به</span>
+            <span style={{ fontWeight: 800, fontSize: 15 }}>ویپاد</span>
+          </>
+        )}
       </button>
     </div>
   );
