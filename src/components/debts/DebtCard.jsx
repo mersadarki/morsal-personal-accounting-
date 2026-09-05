@@ -51,7 +51,7 @@ function EntryRow({ entry, debtId, onEditEntry, onDeleteEntry }) {
   );
 }
 
-export default function DebtCard({ debt, onAddEntries, onEditEntry, onDeleteEntry, onDeletePerson, onFlip }) {
+export default function DebtCard({ debt, iOwe, onAddEntries, onEditEntry, onDeleteEntry, onDeletePerson, onFlip }) {
   const [expanded, setExpanded] = useState(false);
   const [plus, setPlus] = useState('');
   const [minus, setMinus] = useState('');
@@ -65,12 +65,17 @@ export default function DebtCard({ debt, onAddEntries, onEditEntry, onDeleteEntr
     const p = plus.trim() ? parseMoneyShorthand(plus) : null;
     const m = minus.trim() ? parseMoneyShorthand(minus) : null;
     if ((p == null || isNaN(p) || p <= 0) && (m == null || isNaN(m) || m <= 0)) {
-      setError('حداقل یکی از دو مبلغ (بدهی جدید یا دریافتی) را وارد کنید.');
+      setError('حداقل یکی از دو مبلغ (بدهی جدید یا دریافتی/پرداختی) را وارد کنید.');
       return;
     }
+    // "+ بدهی جدید" always grows the debt in whichever direction this card
+    // is on, and "−" always shrinks it — but growing MY debt to someone
+    // (iOwe) means their total gets more negative, the opposite sign from
+    // growing what someone owes ME. Flip the stored delta's sign for iOwe
+    // cards so the buttons keep meaning what their labels say.
     const items = [];
-    if (p != null && !isNaN(p) && p > 0) items.push({ delta: p, note: note.trim() });
-    if (m != null && !isNaN(m) && m > 0) items.push({ delta: -m, note: note.trim() });
+    if (p != null && !isNaN(p) && p > 0) items.push({ delta: iOwe ? -p : p, note: note.trim() });
+    if (m != null && !isNaN(m) && m > 0) items.push({ delta: iOwe ? m : -m, note: note.trim() });
     onAddEntries(debt.id, items);
     setPlus(''); setMinus(''); setNote(''); setError('');
   }
@@ -108,7 +113,7 @@ export default function DebtCard({ debt, onAddEntries, onEditEntry, onDeleteEntr
                 <AmountPreview value={plus} />
               </div>
               <div style={{ flex: '1 1 100px' }}>
-                <div style={{ fontSize: 10.5, color: COLORS.expense, marginBottom: 3, fontWeight: 700 }}>− دریافتی</div>
+                <div style={{ fontSize: 10.5, color: COLORS.expense, marginBottom: 3, fontWeight: 700 }}>{iOwe ? '− پرداخت کردم' : '− دریافتی'}</div>
                 <input inputMode="decimal" value={minus} onChange={(e) => setMinus(e.target.value)} placeholder="مثلاً ۵/۸۰۰" style={{ ...inputStyle, width: '100%' }} />
                 <AmountPreview value={minus} />
               </div>
