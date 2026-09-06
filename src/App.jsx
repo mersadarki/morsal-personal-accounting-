@@ -106,10 +106,17 @@ export default function App() {
     return Array.from(set).sort((a, b) => (a < b ? 1 : -1));
   }, [tx]);
 
+  // Most-recently-used title first (not insertion order) — walking from the
+  // end means whichever title you typed most recently, in either هزینه
+  // شخصی or هزینه ندا, floats to the top of the suggestion list.
   const titleSuggestions = useMemo(() => {
-    const set = new Set();
-    tx.forEach((r) => { if (r.t === 'e' && r.ti) set.add(r.ti); });
-    return Array.from(set).slice(0, 200);
+    const seen = new Set();
+    const list = [];
+    for (let i = tx.length - 1; i >= 0 && list.length < 200; i--) {
+      const r = tx[i];
+      if (r.t === 'e' && r.ti && !seen.has(r.ti)) { seen.add(r.ti); list.push(r.ti); }
+    }
+    return list;
   }, [tx]);
 
   useEffect(() => { if (!statsMonth && currentMonth) setStatsMonth(currentMonth); }, [currentMonth]);

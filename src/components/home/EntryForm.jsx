@@ -20,6 +20,15 @@ export default function EntryForm({ form, setForm, formError, editingId, submitF
     return () => clearTimeout(timerRef.current);
   }, [submitFlash]);
 
+  // Own dropdown instead of the native <datalist> — iOS Safari doesn't show
+  // datalist suggestions at all, which made this silently useless on phone.
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const typed = form.ti.trim();
+  const filteredSuggestions = typed
+    ? titleSuggestions.filter((t) => t.includes(typed) && t !== typed)
+    : titleSuggestions;
+  const visibleSuggestions = filteredSuggestions.slice(0, 8);
+
   return (
     <form onSubmit={onSubmit} style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14, marginBottom: 16 }}>
       <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
@@ -93,13 +102,37 @@ export default function EntryForm({ form, setForm, formError, editingId, submitF
         )}
       </div>
       {form.t === 'e' && (
-        <>
+        <div style={{ position: 'relative', marginBottom: 10 }}>
           <FieldLabel>{form.neda ? 'عنوان هزینه ندا (مثلاً: بیمارستان، کارگر)' : 'عنوان (اختیاری — مثلاً: قسط، جابجایی)'}</FieldLabel>
-          <input list="titleSuggestions" value={form.ti} onChange={(e) => setForm((f) => ({ ...f, ti: e.target.value }))} placeholder="عنوان..." style={{ ...inputStyle, width: '100%', marginBottom: 10 }} />
-          <datalist id="titleSuggestions">
-            {titleSuggestions.map((t) => <option key={t} value={t} />)}
-          </datalist>
-        </>
+          <input
+            value={form.ti}
+            onChange={(e) => setForm((f) => ({ ...f, ti: e.target.value }))}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            placeholder="عنوان..."
+            style={{ ...inputStyle, width: '100%' }}
+          />
+          {showSuggestions && visibleSuggestions.length > 0 && (
+            <div style={{
+              position: 'absolute', top: '100%', right: 0, left: 0, marginTop: 3, zIndex: 10,
+              background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 9,
+              boxShadow: '0 4px 14px rgba(0,0,0,0.12)', maxHeight: 190, overflowY: 'auto',
+            }}>
+              {visibleSuggestions.map((t, i) => (
+                <div
+                  key={t}
+                  onMouseDown={(e) => { e.preventDefault(); setForm((f) => ({ ...f, ti: t })); setShowSuggestions(false); }}
+                  style={{
+                    padding: '9px 12px', fontSize: 13, cursor: 'pointer',
+                    borderBottom: i < visibleSuggestions.length - 1 ? `1px solid ${COLORS.line}` : 'none',
+                  }}
+                >
+                  {t}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {formError && <div style={{ color: COLORS.expense, fontSize: 12, marginBottom: 8 }}>{formError}</div>}
