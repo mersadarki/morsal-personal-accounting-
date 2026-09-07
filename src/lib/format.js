@@ -1,4 +1,5 @@
 import { MONTHS } from './constants';
+import { todayJalali } from './jalali';
 
 export function toEnglishDigits(str) {
   if (str == null) return str;
@@ -20,6 +21,14 @@ export function toFaDigits(n) {
 export function nowHM() {
   const d = new Date();
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+// e.g. "شنبه، ۱۵ شهریور ۱۴۰۵" — shown at the top of Home so "امروز" in the
+// transaction list below it has an actual date attached.
+const WEEKDAYS = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
+export function todayLabel() {
+  const { jy, jm, jd } = todayJalali();
+  return `${WEEKDAYS[new Date().getDay()]}، ${toFaDigits(jd)} ${MONTHS[jm - 1]} ${toFaDigits(jy)}`;
 }
 
 export function monthInfo(raw0) {

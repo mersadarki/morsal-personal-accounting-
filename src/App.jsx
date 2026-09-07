@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { COLORS } from './lib/constants';
-import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM } from './lib/format';
+import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM, todayLabel } from './lib/format';
 import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
@@ -469,6 +469,7 @@ export default function App() {
 
         {view === 'home' && (
           <>
+            <div style={{ textAlign: 'center', fontSize: 12, color: COLORS.inkLight, marginBottom: 12 }}>{todayLabel()}</div>
             <InstallmentReminder items={installmentReminders} onDismiss={toggleInstallmentPaid} />
             <QuickBalanceButtons onQuickAdd={quickAddBalance} />
             <HomeView
