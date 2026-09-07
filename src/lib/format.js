@@ -23,12 +23,19 @@ export function nowHM() {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+// e.g. "۱۵ شهریور ۱۴۰۵" — day + month + year, no weekday. Shared by the
+// Home header (with weekday prefixed) and by anything that just needs a
+// compact "recorded on" stamp, like debt entries.
+function jalaliDateStr({ jy, jm, jd }) {
+  return `${toFaDigits(jd)} ${MONTHS[jm - 1]} ${toFaDigits(jy)}`;
+}
+export function todayDateShort() { return jalaliDateStr(todayJalali()); }
+
 // e.g. "شنبه، ۱۵ شهریور ۱۴۰۵" — shown at the top of Home so "امروز" in the
 // transaction list below it has an actual date attached.
 const WEEKDAYS = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
 export function todayLabel() {
-  const { jy, jm, jd } = todayJalali();
-  return `${WEEKDAYS[new Date().getDay()]}، ${toFaDigits(jd)} ${MONTHS[jm - 1]} ${toFaDigits(jy)}`;
+  return `${WEEKDAYS[new Date().getDay()]}، ${todayDateShort()}`;
 }
 
 export function monthInfo(raw0) {

@@ -41,7 +41,10 @@ function EntryRow({ entry, debtId, onEditEntry, onDeleteEntry }) {
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderTop: `1px solid ${COLORS.line}` }}>
-      <div style={{ flex: 1, fontSize: 12.5, color: COLORS.inkLight }}>{entry.note || '—'}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12.5, color: COLORS.inkLight }}>{entry.note || '—'}</div>
+        {entry.date && <div style={{ fontSize: 10, color: COLORS.inkLight, opacity: 0.65, marginTop: 1 }}>{entry.date}</div>}
+      </div>
       <div className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: entry.delta >= 0 ? COLORS.income : COLORS.expense }}>
         <Amount value={entry.delta} sign={entry.delta >= 0 ? '+' : ''} />
       </div>

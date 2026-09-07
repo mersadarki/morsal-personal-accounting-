@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { COLORS } from './lib/constants';
-import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM, todayLabel } from './lib/format';
+import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM, todayLabel, todayDateShort } from './lib/format';
 import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
@@ -315,7 +315,7 @@ export default function App() {
     persistDebts(debts.map((d) => {
       if (d.id !== personId) return d;
       let nid = d.entries.reduce((m, e) => Math.max(m, e.id || 0), 0);
-      const newEntries = items.map((it) => { nid += 1; return { id: nid, delta: it.delta, note: it.note }; });
+      const newEntries = items.map((it) => { nid += 1; return { id: nid, delta: it.delta, note: it.note, date: todayDateShort() }; });
       return { ...d, entries: [...d.entries, ...newEntries] };
     }));
   }
