@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Plus, ListPlus } from 'lucide-react';
 import { COLORS, MONTHS } from '../../lib/constants';
-import { toFaDigits, toEnglishDigits, monthInfo } from '../../lib/format';
+import { toFaDigits, toEnglishDigits, monthInfo, planNextDueJDN } from '../../lib/format';
 import { inputStyle, selectStyle, primaryBtn, secondaryBtn, FieldLabel, Amount } from '../../lib/ui.jsx';
 import InstallmentCard from './InstallmentCard';
 
@@ -29,6 +29,20 @@ export default function InstallmentsView({ installments, currentMonth, onAddPlan
       else missing += unpaidCount;
     });
     return { totalUnpaid: total, missingAmountCount: missing, totalUnpaidCount: count };
+  }, [installments]);
+
+  // Whichever plan's next payment is due soonest (or most overdue) sits on
+  // top — a settled plan has no due date left to sort by, so it sinks to
+  // the bottom regardless of list/insertion order.
+  const sortedInstallments = useMemo(() => {
+    return [...installments].sort((a, b) => {
+      const da = planNextDueJDN(a);
+      const db = planNextDueJDN(b);
+      if (da == null && db == null) return 0;
+      if (da == null) return 1;
+      if (db == null) return -1;
+      return da - db;
+    });
   }, [installments]);
 
   function submit(e) {
@@ -141,7 +155,7 @@ export default function InstallmentsView({ installments, currentMonth, onAddPlan
       {installments.length === 0 && (
         <div style={{ padding: 30, textAlign: 'center', color: COLORS.inkLight, fontSize: 13, background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12 }}>هنوز قسطی ثبت نشده.</div>
       )}
-      {installments.map((p) => (
+      {sortedInstallments.map((p) => (
         <InstallmentCard key={p.id} plan={p} currentMonth={currentMonth} onAddDate={onAddDate} onTogglePaid={onTogglePaid} onDeleteDate={onDeleteDate} onDeletePlan={onDeletePlan} onSetRecurring={onSetRecurring} onEditPlan={onEditPlan} />
       ))}
     </div>

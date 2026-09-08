@@ -1,19 +1,9 @@
 import { useState } from 'react';
 import { Trash2, Plus, Check, X, Pencil, ChevronDown, ChevronUp, Repeat, AlertCircle, Clock } from 'lucide-react';
 import { COLORS, MONTHS } from '../../lib/constants';
-import { toFaDigits, toEnglishDigits, monthInfo, parseMoneyShorthand, fmtUnit } from '../../lib/format';
-import { jalaliToJDN, todayJDN } from '../../lib/jalali';
+import { toFaDigits, toEnglishDigits, monthInfo, parseMoneyShorthand, fmtUnit, planNextDueJDN } from '../../lib/format';
+import { todayJDN } from '../../lib/jalali';
 import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel, Amount, AmountInput } from '../../lib/ui.jsx';
-
-// Julian day number for one due date, so "days until due" is a plain
-// integer subtraction instead of juggling Gregorian Date objects — null
-// when the entry's month label doesn't parse (shouldn't happen, but a
-// broken label should never crash the card).
-function entryJDN(m, dt) {
-  const info = monthInfo(m);
-  if (info.idx === -1 || !info.year) return null;
-  return jalaliToJDN(parseInt(info.year, 10), info.idx + 1, dt);
-}
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
@@ -88,14 +78,9 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
 
   // The soonest still-unpaid due date, whichever plan type — a countdown
   // to it is meaningful for both a fixed loan and an open-ended recurring
-  // bill.
-  const todayJdn = todayJDN();
-  const nextDue = plan.entries
-    .filter((en) => !en.paid)
-    .map((en) => ({ en, jdn: entryJDN(en.m, en.dt) }))
-    .filter((x) => x.jdn != null)
-    .sort((a, b) => a.jdn - b.jdn)[0];
-  const daysUntilNext = nextDue ? nextDue.jdn - todayJdn : null;
+  // bill. Shared with InstallmentsView, which sorts plans by this same value.
+  const nextDueJdn = planNextDueJDN(plan);
+  const daysUntilNext = nextDueJdn != null ? nextDueJdn - todayJDN() : null;
 
   return (
     <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, marginBottom: 12, overflow: 'hidden' }}>

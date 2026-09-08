@@ -1,5 +1,5 @@
 import { MONTHS } from './constants';
-import { todayJalali } from './jalali';
+import { todayJalali, jalaliToJDN } from './jalali';
 
 export function toEnglishDigits(str) {
   if (str == null) return str;
@@ -47,6 +47,27 @@ export function monthInfo(raw0) {
   if (idx === -1) idx = MONTHS.findIndex((mm) => monthOnly.indexOf(mm) > -1);
   const sortKey = `${year || '0000'}-${String(idx > -1 ? idx + 1 : 0).padStart(2, '0')}`;
   return { year, idx, sortKey, label: raw || 'نامشخص' };
+}
+
+// Julian day number for one installment due date — null when the month
+// label doesn't parse (shouldn't happen, but a broken label should never
+// crash the caller). Shared by the installment list (sorting plans by
+// nearest due date) and each plan's own countdown badge, so both agree on
+// what "next due" means for a given plan.
+export function entryDueJDN(m, dt) {
+  const info = monthInfo(m);
+  if (info.idx === -1 || !info.year) return null;
+  return jalaliToJDN(parseInt(info.year, 10), info.idx + 1, dt);
+}
+// The soonest still-unpaid due date across a plan's entries — null when
+// every entry is paid (or none has a parseable date), meaning the plan
+// has nothing pending to sort by.
+export function planNextDueJDN(plan) {
+  const jdns = plan.entries
+    .filter((en) => !en.paid)
+    .map((en) => entryDueJDN(en.m, en.dt))
+    .filter((j) => j != null);
+  return jdns.length ? Math.min(...jdns) : null;
 }
 
 // Advances a "<month name> <year>" label by n months (n=0 returns the same
