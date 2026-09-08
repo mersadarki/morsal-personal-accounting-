@@ -17,16 +17,18 @@ export default function InstallmentsView({ installments, currentMonth, onAddPlan
   const [showBulk, setShowBulk] = useState(false);
   const [bulkText, setBulkText] = useState('');
 
-  const { totalUnpaid, missingAmountCount } = useMemo(() => {
+  const { totalUnpaid, missingAmountCount, totalUnpaidCount } = useMemo(() => {
     let total = 0;
     let missing = 0;
+    let count = 0;
     installments.forEach((p) => {
       const unpaidCount = p.entries.filter((en) => !en.paid).length;
       if (unpaidCount === 0) return;
+      count += unpaidCount;
       if (p.amount != null) total += p.amount * unpaidCount;
       else missing += unpaidCount;
     });
-    return { totalUnpaid: total, missingAmountCount: missing };
+    return { totalUnpaid: total, missingAmountCount: missing, totalUnpaidCount: count };
   }, [installments]);
 
   function submit(e) {
@@ -65,7 +67,9 @@ export default function InstallmentsView({ installments, currentMonth, onAddPlan
     <div>
       {(totalUnpaid > 0 || missingAmountCount > 0) && (
         <div style={{ background: COLORS.cover, color: COLORS.paper, borderRadius: 12, padding: 12, marginBottom: 10, textAlign: 'center' }}>
-          <div style={{ fontSize: 11, opacity: 0.85, marginBottom: 3 }}>مبلغ کل اقساط پرداخت‌نشده</div>
+          <div style={{ fontSize: 11, opacity: 0.85, marginBottom: 3 }}>
+            مبلغ کل اقساط پرداخت‌نشده {totalUnpaidCount > 0 && `(${toFaDigits(totalUnpaidCount)} قسط)`}
+          </div>
           {totalUnpaid > 0 ? (
             <div className="tabular" style={{ fontSize: 18, fontWeight: 800 }}><Amount value={totalUnpaid} /></div>
           ) : (
