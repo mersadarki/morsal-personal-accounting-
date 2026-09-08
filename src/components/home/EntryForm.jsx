@@ -141,10 +141,16 @@ export default function EntryForm({ form, setForm, formError, editingId, submitF
         style={{
           ...primaryBtn, width: '100%', justifyContent: 'center', padding: '10px 0',
           transition: 'background 0.2s, color 0.2s, border-color 0.2s',
-          ...(confirmed ? { background: COLORS.incomeBg, color: COLORS.income, border: `1px solid ${COLORS.income}` } : null),
+          ...(confirmed
+            ? (form.t === 'i'
+                ? { background: COLORS.incomeBg, color: COLORS.income, border: `1.5px solid ${COLORS.income}` }
+                : { background: COLORS.expenseBg, color: COLORS.expense, border: `1.5px solid ${COLORS.expense}` })
+            : null),
         }}
       >
-        {confirmed ? <><Check size={15} /> ثبت شد</> : (editingId != null ? 'ذخیره تغییرات' : 'ثبت')}
+        {confirmed
+          ? <><Check size={15} /> {form.t === 'i' ? 'درآمد ثبت شد' : 'هزینه ثبت شد'}</>
+          : (editingId != null ? 'ذخیره تغییرات' : 'ثبت')}
       </button>
       {editingId != null && (
         <button type="button" onClick={onCancelEdit} style={{ ...secondaryBtn, width: '100%', justifyContent: 'center', marginTop: 8 }}>انصراف از ویرایش</button>
