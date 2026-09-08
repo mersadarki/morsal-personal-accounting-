@@ -1,8 +1,19 @@
 import { useState } from 'react';
-import { Trash2, Plus, Check, X, Pencil, ChevronDown, ChevronUp, Repeat, AlertCircle } from 'lucide-react';
+import { Trash2, Plus, Check, X, Pencil, ChevronDown, ChevronUp, Repeat, AlertCircle, Clock } from 'lucide-react';
 import { COLORS, MONTHS } from '../../lib/constants';
 import { toFaDigits, toEnglishDigits, monthInfo, parseMoneyShorthand, fmtUnit } from '../../lib/format';
+import { jalaliToJDN, todayJDN } from '../../lib/jalali';
 import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel, Amount, AmountInput } from '../../lib/ui.jsx';
+
+// Julian day number for one due date, so "days until due" is a plain
+// integer subtraction instead of juggling Gregorian Date objects — null
+// when the entry's month label doesn't parse (shouldn't happen, but a
+// broken label should never crash the card).
+function entryJDN(m, dt) {
+  const info = monthInfo(m);
+  if (info.idx === -1 || !info.year) return null;
+  return jalaliToJDN(parseInt(info.year, 10), info.idx + 1, dt);
+}
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
@@ -69,6 +80,23 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
   const remainingAmount = plan.amount != null ? plan.amount * remaining : null;
   const thisMonthEntry = plan.entries.find((en) => en.m === currentMonth);
 
+  // A finite (non-recurring) plan has a real "% done" — an endless
+  // recurring one (e.g. a gym membership) never finishes, so a percentage
+  // for it wouldn't mean anything.
+  const paidCount = plan.entries.length - remaining;
+  const percentPaid = !plan.recurring && plan.entries.length > 0 ? Math.round((paidCount / plan.entries.length) * 100) : null;
+
+  // The soonest still-unpaid due date, whichever plan type — a countdown
+  // to it is meaningful for both a fixed loan and an open-ended recurring
+  // bill.
+  const todayJdn = todayJDN();
+  const nextDue = plan.entries
+    .filter((en) => !en.paid)
+    .map((en) => ({ en, jdn: entryJDN(en.m, en.dt) }))
+    .filter((x) => x.jdn != null)
+    .sort((a, b) => a.jdn - b.jdn)[0];
+  const daysUntilNext = nextDue ? nextDue.jdn - todayJdn : null;
+
   return (
     <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, marginBottom: 12, overflow: 'hidden' }}>
       <div
@@ -113,6 +141,33 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
                 {thisMonthEntry
                   ? `روز ${toFaDigits(thisMonthEntry.dt)} — ${thisMonthEntry.paid ? 'پرداخت شد' : 'پرداخت نشده'}`
                   : `سررسید ${currentMonth} هنوز ثبت نشده`}
+              </div>
+            )}
+            {!editing && percentPaid != null && (
+              <div style={{ paddingRight: 21, marginTop: 6, maxWidth: 220 }}>
+                <div style={{ height: 6, borderRadius: 3, background: COLORS.line, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${percentPaid}%`, background: COLORS.income, borderRadius: 3 }} />
+                </div>
+                <div style={{ fontSize: 10, color: COLORS.inkLight, marginTop: 3 }}>
+                  {toFaDigits(percentPaid)}٪ پرداخت شده ({toFaDigits(paidCount)} از {toFaDigits(plan.entries.length)})
+                </div>
+              </div>
+            )}
+            {!editing && daysUntilNext != null && (
+              <div style={{ paddingRight: 21, marginTop: 6 }}>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10.5, fontWeight: 700,
+                  padding: '3px 8px', borderRadius: 20,
+                  background: daysUntilNext <= 3 ? COLORS.expenseBg : COLORS.incomeBg,
+                  color: daysUntilNext <= 3 ? COLORS.expense : COLORS.income,
+                }}>
+                  <Clock size={11} />
+                  {daysUntilNext < 0
+                    ? `${toFaDigits(Math.abs(daysUntilNext))} روز دیرشده`
+                    : daysUntilNext === 0
+                      ? 'سررسید امروز'
+                      : `${toFaDigits(daysUntilNext)} روز تا سررسید بعدی`}
+                </span>
               </div>
             )}
           </div>

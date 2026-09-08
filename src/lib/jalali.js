@@ -53,6 +53,18 @@ function d2j(jdn) {
   return { jy, jm, jd };
 }
 export function toJalaali(gy, gm, gd) { return d2j(g2d(gy, gm, gd)); }
+// Jalali y/m/d -> Julian day number (the reverse of d2j) — lets two Jalali
+// dates be compared/subtracted as plain integers, e.g. "days until this
+// installment is due" without ever touching a Gregorian Date object.
+function j2d(jy, jm, jd) {
+  const r = jalCal(jy);
+  return g2d(r.gy, 3, r.march) + (jm - 1) * 31 - jdiv(jm, 7) * (jm - 7) + jd - 1;
+}
+export function jalaliToJDN(jy, jm, jd) { return j2d(jy, jm, jd); }
+export function todayJDN() {
+  const now = new Date();
+  return g2d(now.getFullYear(), now.getMonth() + 1, now.getDate());
+}
 export function todayDay() {
   const now = new Date();
   return toJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate()).jd;
