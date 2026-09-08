@@ -41,6 +41,10 @@ export default function App() {
   const [formError, setFormError] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [submitFlash, setSubmitFlash] = useState(0);
+  // What the flash above should say — captured before the form resets
+  // (which reverts acc to its default), so the confirmation always names
+  // the account that was actually just submitted, not whatever's now shown.
+  const [lastSubmit, setLastSubmit] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [statsMonth, setStatsMonth] = useState('');
   const [balForm, setBalForm] = useState(emptyBalForm);
@@ -262,6 +266,7 @@ export default function App() {
         adjustBalance(currentMonth, form.acc, -amt);
       }
     }
+    setLastSubmit({ t: form.t, acc: form.acc });
     setForm((f) => ({ ...emptyForm(), t: f.t }));
     setEditingId(null);
     setSubmitFlash((n) => n + 1);
@@ -474,7 +479,7 @@ export default function App() {
             <QuickBalanceButtons onQuickAdd={quickAddBalance} />
             <HomeView
               latestBalances={latestBalances}
-              form={form} setForm={setForm} formError={formError} editingId={editingId} submitFlash={submitFlash}
+              form={form} setForm={setForm} formError={formError} editingId={editingId} submitFlash={submitFlash} lastSubmit={lastSubmit}
               titleSuggestions={titleSuggestions} onSubmit={submitForm} onCancelEdit={openAdd}
               listTx={listTx} visibleCount={visibleCount} setVisibleCount={setVisibleCount}
               saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}

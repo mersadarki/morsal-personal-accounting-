@@ -6,7 +6,7 @@ import { toFaDigits } from '../../lib/format';
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
-export default function EntryForm({ form, setForm, formError, editingId, submitFlash, titleSuggestions, onSubmit, onCancelEdit }) {
+export default function EntryForm({ form, setForm, formError, editingId, submitFlash, lastSubmit, titleSuggestions, onSubmit, onCancelEdit }) {
   // submitFlash increments once per successful submit (App.jsx) — briefly
   // swap the button to a checkmark so a tap is unmistakably registered,
   // same as the quick-add buttons above the balance cards.
@@ -141,15 +141,15 @@ export default function EntryForm({ form, setForm, formError, editingId, submitF
         style={{
           ...primaryBtn, width: '100%', justifyContent: 'center', padding: '10px 0',
           transition: 'background 0.2s, color 0.2s, border-color 0.2s',
-          ...(confirmed
-            ? (form.t === 'i'
+          ...(confirmed && lastSubmit
+            ? (lastSubmit.t === 'i'
                 ? { background: COLORS.incomeBg, color: COLORS.income, border: `1.5px solid ${COLORS.income}` }
                 : { background: COLORS.expenseBg, color: COLORS.expense, border: `1.5px solid ${COLORS.expense}` })
             : null),
         }}
       >
-        {confirmed
-          ? <><Check size={15} /> {form.t === 'i' ? 'درآمد ثبت شد' : 'هزینه ثبت شد'}</>
+        {confirmed && lastSubmit
+          ? <><Check size={15} /> {lastSubmit.t === 'i' ? `درآمد به ${ACCOUNT_LABELS[lastSubmit.acc]} ثبت شد` : `هزینه از ${ACCOUNT_LABELS[lastSubmit.acc]} ثبت شد`}</>
           : (editingId != null ? 'ذخیره تغییرات' : 'ثبت')}
       </button>
       {editingId != null && (
