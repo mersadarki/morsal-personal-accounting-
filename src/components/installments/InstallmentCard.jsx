@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Trash2, Plus, Check, X, Pencil, ChevronDown, ChevronUp, Repeat, AlertCircle } from 'lucide-react';
 import { COLORS, MONTHS } from '../../lib/constants';
-import { toFaDigits, toEnglishDigits, monthInfo, parseMoneyShorthand } from '../../lib/format';
+import { toFaDigits, toEnglishDigits, monthInfo, parseMoneyShorthand, fmtUnit } from '../../lib/format';
 import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel, Amount, AmountInput } from '../../lib/ui.jsx';
 
 const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -64,6 +64,9 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
 
   const sorted = [...plan.entries].sort((a, b) => (a.paid === b.paid ? 0 : a.paid ? 1 : -1));
   const remaining = plan.entries.filter((en) => !en.paid).length;
+  // Per-payment amount is optional (plan.amount) — only when it's known
+  // can "how much is left" be an actual money figure, not just a count.
+  const remainingAmount = plan.amount != null ? plan.amount * remaining : null;
   const thisMonthEntry = plan.entries.find((en) => en.m === currentMonth);
 
   return (
@@ -121,7 +124,18 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
               </>
             ) : (
               <>
-                <div style={{ fontSize: 12, color: COLORS.inkLight, whiteSpace: 'nowrap' }}>{plan.recurring ? '' : (remaining > 0 ? `${toFaDigits(remaining)} مونده` : 'تسویه')}</div>
+                <div style={{ fontSize: 12, color: COLORS.inkLight, whiteSpace: 'nowrap', textAlign: 'left' }}>
+                  {plan.recurring ? '' : remaining > 0 ? (
+                    <>
+                      {toFaDigits(remaining)} مونده
+                      {remainingAmount != null && (
+                        <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.expense }}>
+                          {fmtUnit(remainingAmount).text} {fmtUnit(remainingAmount).unit}
+                        </div>
+                      )}
+                    </>
+                  ) : 'تسویه'}
+                </div>
                 <span role="button" tabIndex={0} aria-label="ویرایش قسط" onClick={startEdit} style={iconBtn(COLORS.inkLight)}><Pencil size={13} /></span>
                 <span role="button" tabIndex={0} aria-label="حذف قسط" onClick={(e) => { e.stopPropagation(); onDeletePlan(plan.id); }} style={iconBtn(COLORS.expense)}><Trash2 size={13} /></span>
               </>
