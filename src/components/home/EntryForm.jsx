@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { TrendingDown, TrendingUp, Check } from 'lucide-react';
-import { ACCOUNTS, ACCOUNT_LABELS, INCOME_CATS, INCOME_CAT_LABELS, INCOME_QUICK, COLORS } from '../../lib/constants';
+import { ACCOUNTS, ACCOUNT_LABELS, ACCOUNT_COLORS, INCOME_CATS, INCOME_CAT_LABELS, INCOME_QUICK, COLORS } from '../../lib/constants';
 import { FieldLabel, AmountPreview, AmountInput, inputStyle, selectStyle, primaryBtn, secondaryBtn, typeToggle, quickBtn } from '../../lib/ui.jsx';
 import { toFaDigits } from '../../lib/format';
 
@@ -141,10 +141,11 @@ export default function EntryForm({ form, setForm, formError, editingId, submitF
         style={{
           ...primaryBtn, width: '100%', justifyContent: 'center', padding: '10px 0',
           transition: 'background 0.2s, color 0.2s, border-color 0.2s',
+          // Colored by ACCOUNT (not income/expense) so ملی and ویپاد are
+          // unmistakably different at a glance — same color language as
+          // the quick-add buttons and balance cards for that account.
           ...(confirmed && lastSubmit
-            ? (lastSubmit.t === 'i'
-                ? { background: COLORS.incomeBg, color: COLORS.income, border: `1.5px solid ${COLORS.income}` }
-                : { background: COLORS.expenseBg, color: COLORS.expense, border: `1.5px solid ${COLORS.expense}` })
+            ? { background: `${ACCOUNT_COLORS[lastSubmit.acc]}22`, color: ACCOUNT_COLORS[lastSubmit.acc], border: `1.5px solid ${ACCOUNT_COLORS[lastSubmit.acc]}` }
             : null),
         }}
       >
