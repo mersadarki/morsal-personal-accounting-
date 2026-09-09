@@ -103,7 +103,10 @@ export default function DebtCard({ debt, iOwe, onAddEntries, onEditEntry, onDele
         <>
           {debt.entries.length > 0 && (
             <div>
-              {debt.entries.map((en) => (
+              {/* Newest first — ids are assigned in insertion order per person,
+                  so sorting by id descending puts the most recent entry on top
+                  without needing every entry to have a parsed date. */}
+              {[...debt.entries].sort((a, b) => b.id - a.id).map((en) => (
                 <EntryRow key={en.id} entry={en} debtId={debt.id} onEditEntry={onEditEntry} onDeleteEntry={onDeleteEntry} />
               ))}
             </div>
