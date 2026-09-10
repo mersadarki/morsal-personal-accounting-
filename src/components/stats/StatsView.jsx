@@ -18,7 +18,7 @@ export default function StatsView({
   dailyChartData, dailyIncomeChartData, nedaBreakdown, nedaGrandTotal,
   statsMonthExpenseTx, statsMonthIncomeTx,
   statsVisibleExpense, setStatsVisibleExpense, statsVisibleIncome, setStatsVisibleIncome,
-  saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete,
+  saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete, runningBalanceByTxId,
 }) {
   const statsShown = statsTab === 'total' ? statsTotal : statsTab === 'yearly' ? statsYearly : statsTab === 'monthly' ? statsMonthly : null;
 
@@ -65,14 +65,14 @@ export default function StatsView({
             type="e" monthLabel={statsMonth} rows={statsMonthExpenseTx} visibleCount={statsVisibleExpense}
             onShowMore={() => setStatsVisibleExpense((c) => c + 40)} saving={saving}
             confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
-            onEdit={onEdit} onDelete={onDelete}
+            onEdit={onEdit} onDelete={onDelete} runningBalanceByTxId={runningBalanceByTxId}
           />
           <div style={{ marginTop: 16 }}>
             <TransactionList
               type="i" monthLabel={statsMonth} rows={statsMonthIncomeTx} visibleCount={statsVisibleIncome}
               onShowMore={() => setStatsVisibleIncome((c) => c + 40)} saving={saving}
               confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
-              onEdit={onEdit} onDelete={onDelete}
+              onEdit={onEdit} onDelete={onDelete} runningBalanceByTxId={runningBalanceByTxId}
             />
           </div>
         </div>

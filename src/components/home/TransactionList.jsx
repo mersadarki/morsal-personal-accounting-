@@ -1,10 +1,20 @@
 import { useState } from 'react';
 import { Pencil, Trash2, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { ACCOUNTS, ACCOUNT_LABELS, ACCOUNT_COLORS, INCOME_CAT_LABELS, COLORS } from '../../lib/constants';
-import { toFaDigits } from '../../lib/format';
+import { toFaDigits, fmt, fmtUnit } from '../../lib/format';
 import { iconBtn, nedaBadge, secondaryBtn, Amount } from '../../lib/ui.jsx';
 
-function TxRow({ r, onEdit, onDelete, confirmDeleteId, setConfirmDeleteId, indented }) {
+// "مانده" after this transaction, formatted the way the rest of the app
+// shows money — plain dollar count for دلار, adaptive هزار/میلیون تومان
+// for everything else.
+function formatBalanceInline(value, acc) {
+  if (value == null) return null;
+  if (acc === 'دلار') return `${fmt(value)} دلار`;
+  const { text, unit } = fmtUnit(value);
+  return `${text} ${unit}`;
+}
+
+function TxRow({ r, onEdit, onDelete, confirmDeleteId, setConfirmDeleteId, indented, balanceAfter }) {
   const isExpense = r.t === 'e';
   return (
     <div className="row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', paddingRight: indented ? 28 : 12, borderBottom: `1px solid ${COLORS.line}` }}>
@@ -22,6 +32,11 @@ function TxRow({ r, onEdit, onDelete, confirmDeleteId, setConfirmDeleteId, inden
         <div style={{ fontSize: 11, color: COLORS.inkLight }}>
           {ACCOUNT_LABELS[r.acc] || r.acc}{r.dt ? ` · روز ${toFaDigits(r.dt)}` : ''}{r.hm ? ` · ${toFaDigits(r.hm)}` : ''}
         </div>
+        {balanceAfter != null && (
+          <div style={{ fontSize: 10.5, color: COLORS.inkLight, opacity: 0.75, marginTop: 1 }}>
+            مانده: {formatBalanceInline(balanceAfter, r.acc)}
+          </div>
+        )}
       </div>
       <div className="tabular" style={{ fontWeight: 700, fontSize: 13, color: isExpense ? COLORS.expense : COLORS.income, whiteSpace: 'nowrap' }}>
         <Amount value={r.a} sign={isExpense ? '−' : '+'} />
@@ -43,7 +58,7 @@ function TxRow({ r, onEdit, onDelete, confirmDeleteId, setConfirmDeleteId, inden
 
 export default function TransactionList({
   type, monthLabel, rows, visibleCount, onShowMore, saving,
-  confirmDeleteId, setConfirmDeleteId, onEdit, onDelete, groupByAccount,
+  confirmDeleteId, setConfirmDeleteId, onEdit, onDelete, groupByAccount, runningBalanceByTxId,
 }) {
   const [expandedAccs, setExpandedAccs] = useState(() => new Set());
   const visible = rows.slice(0, visibleCount);
@@ -94,13 +109,13 @@ export default function TransactionList({
                     </div>
                   </button>
                   {expanded && g.items.map((r) => (
-                    <TxRow key={r.id} r={r} onEdit={onEdit} onDelete={onDelete} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId} indented />
+                    <TxRow key={r.id} r={r} onEdit={onEdit} onDelete={onDelete} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId} indented balanceAfter={runningBalanceByTxId ? runningBalanceByTxId[r.id] : null} />
                   ))}
                 </div>
               );
             })
           : visible.map((r) => (
-              <TxRow key={r.id} r={r} onEdit={onEdit} onDelete={onDelete} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId} />
+              <TxRow key={r.id} r={r} onEdit={onEdit} onDelete={onDelete} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId} balanceAfter={runningBalanceByTxId ? runningBalanceByTxId[r.id] : null} />
             ))}
       </div>
       {rows.length > visibleCount && (

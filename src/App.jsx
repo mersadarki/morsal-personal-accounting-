@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
-import { COLORS } from './lib/constants';
+import { COLORS, ACCOUNTS } from './lib/constants';
 import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM, todayLabel, todayDateShort } from './lib/format';
 import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
@@ -140,6 +140,34 @@ export default function App() {
     entries.sort((a, b) => (monthInfo(a[0]).sortKey < monthInfo(b[0]).sortKey ? 1 : -1));
     return { month: entries[0][0], vals: entries[0][1] };
   }, [balances]);
+
+  // Balance of that transaction's own account right after it happened —
+  // like a bank statement's running total. Reconstructed by replaying
+  // each account's transactions in chronological order and anchoring the
+  // running sum so it lands exactly on the account's current real balance;
+  // a manual balance correction made outside any specific transaction
+  // (e.g. a bank fee) can't be pinned to a moment in this replay, so rows
+  // before such a correction may drift slightly from what the bank showed.
+  const runningBalanceByTxId = useMemo(() => {
+    const map = {};
+    ACCOUNTS.forEach((acc) => {
+      const accTx = tx
+        .filter((r) => r.acc === acc)
+        .slice()
+        .sort((a, b) => {
+          const sa = monthInfo(a.m).sortKey, sb = monthInfo(b.m).sortKey;
+          if (sa !== sb) return sa < sb ? -1 : 1;
+          if ((a.dt || 0) !== (b.dt || 0)) return (a.dt || 0) - (b.dt || 0);
+          if ((a.hm || '') !== (b.hm || '')) return (a.hm || '') < (b.hm || '') ? -1 : 1;
+          return a.id - b.id;
+        });
+      const total = accTx.reduce((s, r) => s + txBalanceDelta(r), 0);
+      const current = (latestBalances && latestBalances.vals[acc] != null) ? latestBalances.vals[acc] : 0;
+      let cum = current - total;
+      accTx.forEach((r) => { cum += txBalanceDelta(r); map[r.id] = cum; });
+    });
+    return map;
+  }, [tx, latestBalances]);
 
   const installmentReminders = useMemo(() => {
     const todayJ = todayJalali();
@@ -484,6 +512,7 @@ export default function App() {
               listTx={listTx} visibleCount={visibleCount} setVisibleCount={setVisibleCount}
               saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
               onEdit={openEdit} onDelete={handleDelete} onEditBalance={openEditBalance}
+              runningBalanceByTxId={runningBalanceByTxId}
             />
           </>
         )}
@@ -516,7 +545,7 @@ export default function App() {
             statsVisibleExpense={statsVisibleExpense} setStatsVisibleExpense={setStatsVisibleExpense}
             statsVisibleIncome={statsVisibleIncome} setStatsVisibleIncome={setStatsVisibleIncome}
             saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
-            onEdit={openEdit} onDelete={handleDelete}
+            onEdit={openEdit} onDelete={handleDelete} runningBalanceByTxId={runningBalanceByTxId}
           />
         )}
 

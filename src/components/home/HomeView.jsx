@@ -5,7 +5,7 @@ import TransactionList from './TransactionList';
 export default function HomeView({
   latestBalances, form, setForm, formError, editingId, submitFlash, lastSubmit, titleSuggestions,
   onSubmit, onCancelEdit, listTx, visibleCount, setVisibleCount,
-  saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete, onEditBalance,
+  saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete, onEditBalance, runningBalanceByTxId,
 }) {
   return (
     <div>
@@ -18,7 +18,7 @@ export default function HomeView({
         type={form.t} monthLabel="امروز" rows={listTx} visibleCount={visibleCount}
         onShowMore={() => setVisibleCount((c) => c + 40)} saving={saving}
         confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
-        onEdit={onEdit} onDelete={onDelete} groupByAccount
+        onEdit={onEdit} onDelete={onDelete} groupByAccount runningBalanceByTxId={runningBalanceByTxId}
       />
     </div>
   );
