@@ -23,7 +23,10 @@ import SettingsView from './components/settings/SettingsView';
 import BalanceFormModal from './components/settings/BalanceFormModal';
 
 const emptyBalForm = { month: '', 'ملی': '', 'ویپاد': '', 'اعتبار ملی': '', 'نقدی': '', 'دلار': '' };
-function emptyForm() { return { t: 'i', acc: 'ملی', a: '', ti: '', neda: false, transfer: false, loan: false, noStats: false, cat: 'vpn', dt: String(todayDay()) }; }
+// acc starts blank (not defaulted to a bank) so every entry forces an
+// explicit choice — a silent default was exactly what caused mistaken
+// charges to the wrong account.
+function emptyForm() { return { t: 'i', acc: '', a: '', ti: '', neda: false, transfer: false, loan: false, noStats: false, cat: 'vpn', dt: String(todayDay()) }; }
 const DEFAULT_MONTH = 'شهریور ۱۴۰۵';
 
 export default function App() {
@@ -257,6 +260,7 @@ export default function App() {
 
   function submitForm(e) {
     e.preventDefault();
+    if (!form.acc) { setFormError('حساب را انتخاب کنید.'); return; }
     const amt = parseMoneyShorthand(form.a);
     if (isNaN(amt) || amt <= 0) { setFormError('مبلغ را درست وارد کنید.'); return; }
     const dtVal = form.dt ? parseInt(toEnglishDigits(String(form.dt)), 10) : null;
@@ -295,10 +299,10 @@ export default function App() {
       }
     }
     setLastSubmit({ t: form.t, acc: form.acc });
-    // Keep the account selected instead of snapping back to the default —
-    // resetting it silently was exactly what caused mistaken charges to
-    // the wrong bank when entering several rows in a row.
-    setForm((f) => ({ ...emptyForm(), t: f.t, acc: f.acc }));
+    // Account resets to blank (not carried over) — forces picking it again
+    // on every entry instead of trusting whatever's left selected.
+    setForm((f) => ({ ...emptyForm(), t: f.t }));
+    setFormError('');
     setEditingId(null);
     setSubmitFlash((n) => n + 1);
   }

@@ -66,6 +66,7 @@ export default function EntryForm({ form, setForm, formError, editingId, submitF
         <div style={{ flex: 1 }}>
           <FieldLabel>{form.t === 'e' ? 'از کدام حساب' : 'به کدام حساب'}</FieldLabel>
           <select value={form.acc} onChange={(e) => setForm((f) => ({ ...f, acc: e.target.value }))} style={{ ...selectStyle, width: '100%' }}>
+            <option value="" disabled>انتخاب کنید...</option>
             {ACCOUNTS.map((a) => <option key={a} value={a}>{ACCOUNT_LABELS[a]}</option>)}
           </select>
         </div>
