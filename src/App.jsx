@@ -295,7 +295,10 @@ export default function App() {
       }
     }
     setLastSubmit({ t: form.t, acc: form.acc });
-    setForm((f) => ({ ...emptyForm(), t: f.t }));
+    // Keep the account selected instead of snapping back to the default —
+    // resetting it silently was exactly what caused mistaken charges to
+    // the wrong bank when entering several rows in a row.
+    setForm((f) => ({ ...emptyForm(), t: f.t, acc: f.acc }));
     setEditingId(null);
     setSubmitFlash((n) => n + 1);
   }
