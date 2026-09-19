@@ -130,6 +130,32 @@ export default function App() {
   useEffect(() => { if (!statsYear && yearOptions.length) setStatsYear(yearOptions[0]); }, [yearOptions]);
   useEffect(() => { setStatsVisibleExpense(40); setStatsVisibleIncome(40); }, [statsMonth]);
 
+  // form.dt only gets today's real day when emptyForm() runs (on mount or
+  // after a submit) — if the tab is left open past midnight with no
+  // submission in between, that value goes stale and a new entry silently
+  // saves under yesterday's day, which is exactly why it wouldn't show up
+  // in the "امروز" list even though it's there in stats. Re-sync it to the
+  // real day whenever the tab regains focus, but only while it still holds
+  // the stale default (not a day someone deliberately picked) and no edit
+  // is in progress.
+  const lastKnownDayRef = useRef(String(todayDay()));
+  useEffect(() => {
+    function syncToday() {
+      const today = String(todayDay());
+      const stale = lastKnownDayRef.current;
+      if (today === stale) return;
+      lastKnownDayRef.current = today;
+      if (editingId != null) return;
+      setForm((f) => (f.dt === stale ? { ...f, dt: today } : f));
+    }
+    document.addEventListener('visibilitychange', syncToday);
+    window.addEventListener('focus', syncToday);
+    return () => {
+      document.removeEventListener('visibilitychange', syncToday);
+      window.removeEventListener('focus', syncToday);
+    };
+  }, [editingId]);
+
   const currentMonthTx = useMemo(() => tx.filter((r) => r.m === currentMonth).sort((a, b) => b.id - a.id), [tx, currentMonth]);
   const todayTx = useMemo(() => currentMonthTx.filter((r) => r.dt === todayDay()), [currentMonthTx]);
   const listTx = useMemo(() => todayTx.filter((r) => r.t === form.t), [todayTx, form.t]);
