@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { COLORS, ACCOUNTS } from './lib/constants';
-import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM, todayLabel, todayDateShort } from './lib/format';
+import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, isVpnNewExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM, todayLabel, todayDateShort } from './lib/format';
 import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
@@ -178,6 +178,13 @@ export default function App() {
 
   const statsMonthExpenseTx = useMemo(() => tx.filter((r) => r.m === statsMonth && r.t === 'e').sort((a, b) => b.id - a.id), [tx, statsMonth]);
   const statsMonthIncomeTx = useMemo(() => tx.filter((r) => r.m === statsMonth && r.t === 'i').sort((a, b) => b.id - a.id), [tx, statsMonth]);
+
+  // Every entry feeding «سود وی‌پی‌ان نیو» — all-time, so a wrong category or
+  // a mistyped title (and a mistyped amount unit, e.g. full toman instead of
+  // hezar-toman) both stick out at a glance instead of just showing up as
+  // one suspicious net number.
+  const vpnNewIncomeTx = useMemo(() => tx.filter((r) => r.t === 'i' && r.cat === 'vpnNew').sort((a, b) => b.id - a.id), [tx]);
+  const vpnNewCostTx = useMemo(() => tx.filter((r) => r.t === 'e' && isVpnNewExpenseTitle(r.ti)).sort((a, b) => b.id - a.id), [tx]);
 
   const latestBalances = useMemo(() => {
     const entries = Object.entries(balances);
@@ -591,6 +598,7 @@ export default function App() {
             dailyChartData={dailyChartData} dailyIncomeChartData={dailyIncomeChartData}
             nedaBreakdown={nedaBreakdown} nedaGrandTotal={nedaGrandTotal}
             statsMonthExpenseTx={statsMonthExpenseTx} statsMonthIncomeTx={statsMonthIncomeTx}
+            vpnNewIncomeTx={vpnNewIncomeTx} vpnNewCostTx={vpnNewCostTx}
             statsVisibleExpense={statsVisibleExpense} setStatsVisibleExpense={setStatsVisibleExpense}
             statsVisibleIncome={statsVisibleIncome} setStatsVisibleIncome={setStatsVisibleIncome}
             saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
