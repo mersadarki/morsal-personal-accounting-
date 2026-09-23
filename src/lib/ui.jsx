@@ -40,9 +40,15 @@ export function AmountPreview({ value }) {
 export function Amount({ value, sign, account }) {
   const isDollar = account === 'دلار';
   const { text, unit } = isDollar ? { text: fmt(value), unit: 'دلار' } : fmtUnit(value);
+  // fmtUnit already puts a literal "-" in `text` when the value itself is
+  // negative, so only prepend the caller's +/- when the value is
+  // non-negative — otherwise an income row with a negative stored amount
+  // (a data anomaly, e.g. from a migrated correction entry) rendered as a
+  // garbled "+-500" instead of plainly showing the number's real sign.
+  const shownSign = value < 0 ? '' : (sign || '');
   return (
     <span style={{ display: 'inline-block', verticalAlign: 'middle' }}>
-      <div>{sign || ''}{text}</div>
+      <div>{shownSign}{text}</div>
       <div style={{ fontSize: '0.72em', fontWeight: 500, opacity: 0.72, whiteSpace: 'nowrap' }}>{unit}</div>
     </span>
   );
