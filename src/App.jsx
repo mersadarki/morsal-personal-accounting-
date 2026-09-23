@@ -77,8 +77,16 @@ export default function App() {
     } catch { setBalances(SEED_BALANCES); }
     try {
       const rawM = storageGet(MONTH_KEY);
-      if (rawM) setCurrentMonth(rawM);
-      else { setCurrentMonth(DEFAULT_MONTH); storageSet(MONTH_KEY, DEFAULT_MONTH); }
+      // Auto-advance a stale «ماه جاری» forward to the real current month on
+      // load — never backward, so a month deliberately set to something
+      // older (e.g. to backfill) survives a reload. Without this, reopening
+      // the app in a new Jalali month kept showing last month forever,
+      // since nothing else ever nudges this value on its own.
+      const realMonth = jalaliToMonthLabel(todayJalali());
+      let month = rawM || DEFAULT_MONTH;
+      if (monthInfo(month).sortKey < monthInfo(realMonth).sortKey) month = realMonth;
+      setCurrentMonth(month);
+      storageSet(MONTH_KEY, month);
     } catch { setCurrentMonth(DEFAULT_MONTH); }
     try {
       const rawD = storageGet(DEBTS_KEY);
@@ -134,19 +142,27 @@ export default function App() {
   // after a submit) — if the tab is left open past midnight with no
   // submission in between, that value goes stale and a new entry silently
   // saves under yesterday's day, which is exactly why it wouldn't show up
-  // in the "امروز" list even though it's there in stats. Re-sync it to the
-  // real day whenever the tab regains focus, but only while it still holds
-  // the stale default (not a day someone deliberately picked) and no edit
+  // in the "امروز" list even though it's there in stats. Same idea for
+  // «ماه جاری» if the tab stays open across a month boundary. Re-sync both
+  // whenever the tab regains focus, but only while they still hold the
+  // stale value (not something someone deliberately picked) and no edit
   // is in progress.
   const lastKnownDayRef = useRef(String(todayDay()));
+  const lastKnownMonthRef = useRef(jalaliToMonthLabel(todayJalali()));
   useEffect(() => {
     function syncToday() {
       const today = String(todayDay());
-      const stale = lastKnownDayRef.current;
-      if (today === stale) return;
-      lastKnownDayRef.current = today;
-      if (editingId != null) return;
-      setForm((f) => (f.dt === stale ? { ...f, dt: today } : f));
+      const staleDay = lastKnownDayRef.current;
+      if (today !== staleDay) {
+        lastKnownDayRef.current = today;
+        if (editingId == null) setForm((f) => (f.dt === staleDay ? { ...f, dt: today } : f));
+      }
+      const realMonth = jalaliToMonthLabel(todayJalali());
+      const staleMonth = lastKnownMonthRef.current;
+      if (realMonth !== staleMonth) {
+        lastKnownMonthRef.current = realMonth;
+        if (currentMonth === staleMonth) persistMonth(realMonth);
+      }
     }
     document.addEventListener('visibilitychange', syncToday);
     window.addEventListener('focus', syncToday);
@@ -154,7 +170,7 @@ export default function App() {
       document.removeEventListener('visibilitychange', syncToday);
       window.removeEventListener('focus', syncToday);
     };
-  }, [editingId]);
+  }, [editingId, currentMonth]);
 
   const currentMonthTx = useMemo(() => tx.filter((r) => r.m === currentMonth).sort((a, b) => b.id - a.id), [tx, currentMonth]);
   const todayTx = useMemo(() => currentMonthTx.filter((r) => r.dt === todayDay()), [currentMonthTx]);
