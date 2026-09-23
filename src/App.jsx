@@ -7,6 +7,7 @@ import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, st
 import { computeStatsRows } from './lib/stats';
 import { SEED_TX, SEED_BALANCES, SEED_DEBTS, SEED_INSTALLMENTS } from './lib/seed';
 import { downloadBackup, exportOwnExpenses, exportNedaExpenses, exportDebts, exportInstallments, exportAllExcel } from './lib/io';
+import { fixVpnNewIncomeCategories } from './lib/vpnNewFix';
 import { fontStyle } from './lib/ui.jsx';
 import { useAppUpdate } from './lib/useAppUpdate';
 
@@ -58,6 +59,7 @@ export default function App() {
   const [statsVisibleExpense, setStatsVisibleExpense] = useState(40);
   const [statsVisibleIncome, setStatsVisibleIncome] = useState(40);
   const [backupMsg, setBackupMsg] = useState('');
+  const [vpnNewFixMsg, setVpnNewFixMsg] = useState('');
   const backupFileRef = useRef(null);
   const update = useAppUpdate();
 
@@ -518,6 +520,13 @@ export default function App() {
   function handleExportAllExcel() { exportAllExcel(tx, monthInfo, debts, installments); }
   function handleDownloadBackup() { downloadBackup(tx, balances, debts, installments, currentMonth); }
 
+  // One-time fix for a migration bug — see lib/vpnNewFix.js for the full story.
+  function handleFixVpnNewIncome() {
+    const { next, fixedCount } = fixVpnNewIncomeCategories(tx);
+    if (fixedCount > 0) persistTx(next);
+    setVpnNewFixMsg(fixedCount > 0 ? `${toFaDigits(fixedCount)} مورد اصلاح شد.` : 'موردی برای اصلاح پیدا نشد — احتمالاً قبلاً اصلاح شده.');
+  }
+
   function handleRestoreBackup(e) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -611,6 +620,7 @@ export default function App() {
             onDownloadBackup={handleDownloadBackup} onRestoreBackup={handleRestoreBackup} backupMsg={backupMsg} backupFileRef={backupFileRef}
             onExportOwnExpenses={handleExportOwnExpenses} onExportNedaExpenses={handleExportNedaExpenses}
             onExportDebts={handleExportDebts} onExportInstallments={handleExportInstallments} onExportAllExcel={handleExportAllExcel}
+            onFixVpnNewIncome={handleFixVpnNewIncome} vpnNewFixMsg={vpnNewFixMsg}
             update={update}
           />
         )}

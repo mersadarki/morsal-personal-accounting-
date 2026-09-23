@@ -7,6 +7,7 @@ import UpdateSection from './UpdateSection';
 export default function SettingsView({
   onDownloadBackup, onRestoreBackup, backupMsg, backupFileRef,
   onExportOwnExpenses, onExportNedaExpenses, onExportDebts, onExportInstallments, onExportAllExcel,
+  onFixVpnNewIncome, vpnNewFixMsg,
   update,
 }) {
   return (
@@ -29,6 +30,16 @@ export default function SettingsView({
           </label>
         </div>
         {backupMsg && <div style={{ marginTop: 8, fontSize: 12, color: COLORS.inkLight }}>{backupMsg}</div>}
+      </SettingsSection>
+
+      <SettingsSection title="اصلاح دسته‌بندی درآمد وی‌پی‌ان نیو">
+        <div style={{ fontSize: 11.5, color: COLORS.inkLight, marginBottom: 10, lineHeight: 2 }}>
+          موقع وارد کردن اکسل قدیمی، درآمدهایی که تو اکسل دسته‌شون «vpn new» بود، اشتباهی جزو دسته‌ی معمولی «وی‌پی‌ان» ثبت شدن
+          (نه «وی‌پی‌ان نیو») — برای همین «سود وی‌پی‌ان نیو» بی‌دلیل خیلی منفی نشون داده می‌شه. این دکمه فقط همون ردیف‌های
+          مشخص‌شده رو پیدا و دسته‌شون رو درست می‌کنه، به بقیه‌ی داده‌هاتون کاری نداره. یک‌بار اجرا کافیه.
+        </div>
+        <button onClick={onFixVpnNewIncome} style={primaryBtn}>اصلاح دسته‌بندی («وی‌پی‌ان» ← «وی‌پی‌ان نیو»)</button>
+        {vpnNewFixMsg && <div style={{ marginTop: 8, fontSize: 12, color: COLORS.inkLight }}>{vpnNewFixMsg}</div>}
       </SettingsSection>
 
       <SettingsSection title="خروجی اکسل">
