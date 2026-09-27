@@ -15,4 +15,4 @@ export const ACCOUNT_COLORS = {
 export const INCOME_CATS = ['vpn', 'vpnNew', 'kapitan', 'khadamat', 'transfer'];
 export const INCOME_CAT_LABELS = { vpn: 'وی‌پی‌ان', vpnNew: 'وی‌پی‌ان نیو', kapitan: 'کاپیتان', khadamat: 'خدمات', transfer: 'جابجایی (بدون درآمد واقعی)' };
 export const MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
-export const INCOME_QUICK = [{ label: '۵۰۰ هزار تومان', val: '500' }, { label: '۱ میلیون تومان', val: '1000' }];
+export const INCOME_QUICK = [{ label: '۶۰۰ هزار تومان', val: '600' }, { label: '۱ میلیون تومان', val: '1000' }];
