@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Trash2, Plus, Check, X, Pencil, ChevronDown, ChevronUp, Repeat, AlertCircle, Clock } from 'lucide-react';
 import { COLORS, MONTHS } from '../../lib/constants';
-import { toFaDigits, toEnglishDigits, monthInfo, parseMoneyShorthand, fmtUnit, planNextDueJDN } from '../../lib/format';
+import { toFaDigits, toEnglishDigits, monthInfo, parseMoneyShorthand, fmtUnit, planNextDueJDN, entryDueJDN } from '../../lib/format';
 import { todayJDN } from '../../lib/jalali';
 import { inputStyle, selectStyle, iconBtn, secondaryBtn, FieldLabel, Amount, AmountInput } from '../../lib/ui.jsx';
 
@@ -81,6 +81,15 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
   // bill. Shared with InstallmentsView, which sorts plans by this same value.
   const nextDueJdn = planNextDueJDN(plan);
   const daysUntilNext = nextDueJdn != null ? nextDueJdn - todayJDN() : null;
+
+  // The plan's final due date — whichever entry is chronologically last,
+  // paid or not — so "N مونده" always has an actual calendar date attached,
+  // not just a count. Only meaningful for a finite (non-recurring) plan.
+  const lastEntry = plan.entries.reduce((latest, en) => {
+    const jdn = entryDueJDN(en.m, en.dt);
+    if (jdn == null) return latest;
+    return !latest || jdn > latest.jdn ? { en, jdn } : latest;
+  }, null);
 
   return (
     <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, marginBottom: 12, overflow: 'hidden' }}>
@@ -171,6 +180,11 @@ export default function InstallmentCard({ plan, currentMonth, onAddDate, onToggl
                       {remainingAmount != null && (
                         <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.expense }}>
                           {fmtUnit(remainingAmount).text} {fmtUnit(remainingAmount).unit}
+                        </div>
+                      )}
+                      {lastEntry && (
+                        <div style={{ fontSize: 10, color: COLORS.inkLight, marginTop: 2 }}>
+                          پایان: {toFaDigits(lastEntry.en.dt)} {lastEntry.en.m}
                         </div>
                       )}
                     </>
