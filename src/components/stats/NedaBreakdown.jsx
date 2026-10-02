@@ -1,10 +1,23 @@
 import { useState, lazy, Suspense } from 'react';
 import { ChevronRight, ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { ACCOUNT_LABELS, COLORS } from '../../lib/constants';
-import { toFaDigits } from '../../lib/format';
+import { toFaDigits, dayHeaderLabel } from '../../lib/format';
 import { displayStyle, iconBtn, Amount } from '../../lib/ui.jsx';
 
 const NedaChart = lazy(() => import('./NedaChart'));
+
+// Rows arrive sorted by day; split them into consecutive same-day groups so
+// each day gets its own header instead of one long mixed list.
+function groupByDay(rows) {
+  const groups = [];
+  rows.forEach((r) => {
+    const dt = r.dt || 0;
+    const last = groups[groups.length - 1];
+    if (last && last.dt === dt) { last.rows.push(r); last.total += r.a || 0; }
+    else groups.push({ dt, rows: [r], total: r.a || 0 });
+  });
+  return groups;
+}
 
 export default function NedaBreakdown({ nedaBreakdown, nedaGrandTotal }) {
   const [expandedYear, setExpandedYear] = useState(null);
@@ -91,11 +104,21 @@ export default function NedaBreakdown({ nedaBreakdown, nedaGrandTotal }) {
                         </div>
                         <div className="tabular" style={{ fontSize: 13, fontWeight: 700, color: COLORS.expense }}><Amount value={mo.total} /></div>
                       </button>
-                      {monthOpen && mo.rows.map((r) => (
-                        <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderTop: `1px solid ${COLORS.line}` }}>
-                          <div style={{ flex: 1, fontSize: 12.5 }}>{r.ti || 'بدون عنوان'}</div>
-                          <div style={{ fontSize: 11, color: COLORS.inkLight }}>{ACCOUNT_LABELS[r.acc] || r.acc}{r.dt ? ` · روز ${toFaDigits(r.dt)}` : ''}</div>
-                          <div className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.expense }}><Amount value={r.a} /></div>
+                      {monthOpen && groupByDay(mo.rows).map((g) => (
+                        <div key={g.dt}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 12px', background: COLORS.paper, borderTop: `1px solid ${COLORS.line}` }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.cover }}>
+                              {g.dt ? (dayHeaderLabel(mo.month, g.dt) || `روز ${toFaDigits(g.dt)}`) : 'بدون روز'}
+                            </div>
+                            <div className="tabular" style={{ fontSize: 11.5, fontWeight: 700, color: COLORS.inkLight }}><Amount value={g.total} /></div>
+                          </div>
+                          {g.rows.map((r) => (
+                            <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderTop: `1px solid ${COLORS.line}` }}>
+                              <div style={{ flex: 1, fontSize: 12.5 }}>{r.ti || 'بدون عنوان'}</div>
+                              <div style={{ fontSize: 11, color: COLORS.inkLight }}>{ACCOUNT_LABELS[r.acc] || r.acc}</div>
+                              <div className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.expense }}><Amount value={r.a} /></div>
+                            </div>
+                          ))}
                         </div>
                       ))}
                     </div>

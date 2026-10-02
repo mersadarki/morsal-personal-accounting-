@@ -34,6 +34,14 @@ export function todayDateShort() { return jalaliDateStr(todayJalali()); }
 // e.g. "شنبه، ۱۵ شهریور ۱۴۰۵" — shown at the top of Home so "امروز" in the
 // transaction list below it has an actual date attached.
 const WEEKDAYS = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
+// e.g. "شنبه ۳ مهر" — weekday + day for one row's date, so a month's rows
+// can be split into per-day groups. Null when the month label doesn't parse.
+export function dayHeaderLabel(m, dt) {
+  const jdn = entryDueJDN(m, dt);
+  if (jdn == null) return null;
+  const info = monthInfo(m);
+  return `${WEEKDAYS[(jdn + 1) % 7]} ${toFaDigits(dt)} ${MONTHS[info.idx]}`;
+}
 export function todayLabel() {
   return `${WEEKDAYS[new Date().getDay()]}، ${todayDateShort()}`;
 }
