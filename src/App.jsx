@@ -281,7 +281,7 @@ export default function App() {
     return years.map(([year, byMonth]) => {
       const months = Array.from(byMonth.entries()).sort((a, b) => (a[1].sortKey < b[1].sortKey ? 1 : -1));
       const yearTotal = months.reduce((s, [, v]) => s + v.rows.reduce((s2, r) => s2 + (r.a || 0), 0), 0);
-      return { year, yearTotal, months: months.map(([m, v]) => ({ month: m, sortKey: v.sortKey, total: v.rows.reduce((s, r) => s + (r.a || 0), 0), rows: v.rows.sort((a, b) => (a.dt || 0) - (b.dt || 0)) })) };
+      return { year, yearTotal, months: months.map(([m, v]) => ({ month: m, sortKey: v.sortKey, total: v.rows.reduce((s, r) => s + (r.a || 0), 0), rows: v.rows.sort((a, b) => ((b.dt || 0) - (a.dt || 0)) || (b.id - a.id)) })) };
     });
   }, [tx]);
   const nedaGrandTotal = nedaBreakdown.reduce((s, y) => s + y.yearTotal, 0);

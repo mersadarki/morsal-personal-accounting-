@@ -6,7 +6,7 @@ import { displayStyle, iconBtn, Amount } from '../../lib/ui.jsx';
 
 const NedaChart = lazy(() => import('./NedaChart'));
 
-// Rows arrive sorted by day; split them into consecutive same-day groups so
+// Rows arrive sorted newest day first; split them into consecutive same-day groups so
 // each day gets its own header instead of one long mixed list.
 function groupByDay(rows) {
   const groups = [];
