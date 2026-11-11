@@ -1,12 +1,55 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { COLORS } from '../../lib/constants';
-import { toFaDigits } from '../../lib/format';
-import { FieldLabel, selectStyle, subTabStyle, Amount } from '../../lib/ui.jsx';
+import { toFaDigits, monthInfo } from '../../lib/format';
+import { FieldLabel, selectStyle, subTabStyle, Amount, iconBtn } from '../../lib/ui.jsx';
 import StatsGrid from './StatsGrid';
 import NedaBreakdown from './NedaBreakdown';
 import TransactionList from '../home/TransactionList';
 
 const DailyChart = lazy(() => import('./DailyChart'));
+const NedaChart = lazy(() => import('./NedaChart'));
+
+// Month-by-month bar chart of الومارکت spending, one year at a time (same
+// layout as the ندا tab's chart). Arrows step between the years that have
+// any الومارکت rows, newest year first.
+function AloMarketChart({ months }) {
+  const [yearIdx, setYearIdx] = useState(0);
+  const years = Array.from(new Set(months.map((g) => monthInfo(g.month).year || '—'))).sort((a, b) => (a < b ? 1 : -1));
+  if (years.length === 0) return null;
+  const idx = Math.min(yearIdx, years.length - 1);
+  const year = years[idx];
+  const data = months
+    .filter((g) => (monthInfo(g.month).year || '—') === year)
+    .sort((a, b) => (a.sortKey < b.sortKey ? -1 : 1))
+    .map((g) => ({ label: g.month, amount: g.total }));
+  return (
+    <div style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 12, marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <button
+          onClick={() => setYearIdx(Math.min(idx + 1, years.length - 1))}
+          disabled={idx >= years.length - 1}
+          style={{ ...iconBtn(COLORS.cover), opacity: idx >= years.length - 1 ? 0.3 : 1 }}
+        >
+          <ChevronRight size={16} />
+        </button>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.cover }}>
+          پراکندگی هزینه الومارکت — سال {toFaDigits(year)}
+        </div>
+        <button
+          onClick={() => setYearIdx(Math.max(idx - 1, 0))}
+          disabled={idx <= 0}
+          style={{ ...iconBtn(COLORS.cover), opacity: idx <= 0 ? 0.3 : 1 }}
+        >
+          <ChevronLeft size={16} />
+        </button>
+      </div>
+      <Suspense fallback={<div style={{ height: 180 }} />}>
+        <NedaChart data={data} title="پراکندگی هزینه الومارکت در طول ماه‌ها" />
+      </Suspense>
+    </div>
+  );
+}
 
 function ChartFallback() {
   return <div style={{ height: 180, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.inkLight, fontSize: 12 }}>در حال بارگذاری نمودار...</div>;
@@ -121,6 +164,7 @@ export default function StatsView({
             <div style={{ fontSize: 12, color: COLORS.inkLight, marginBottom: 4 }}>مجموع کل هزینه‌های الومارکت</div>
             <div className="tabular" style={{ fontSize: 22, fontWeight: 800, color: COLORS.expense }}><Amount value={aloMarketTotal} /></div>
           </div>
+          <AloMarketChart months={aloMarketMonths} />
           {aloMarketMonths.length === 0 && (
             <div style={{ padding: 30, textAlign: 'center', color: COLORS.inkLight, fontSize: 13, background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12 }}>هزینه‌ای با عنوان «الومارکت» ثبت نشده.</div>
           )}

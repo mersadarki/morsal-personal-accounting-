@@ -2,10 +2,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { COLORS } from '../../lib/constants';
 import { fmtUnit } from '../../lib/format';
 
-export default function NedaChart({ data }) {
+export default function NedaChart({ data, title }) {
   return (
     <div style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 12, marginBottom: 14 }}>
-      <div style={{ fontSize: 12, color: COLORS.inkLight, marginBottom: 8 }}>پراکندگی هزینه ندا در طول ماه‌ها</div>
+      <div style={{ fontSize: 12, color: COLORS.inkLight, marginBottom: 8 }}>{title || 'پراکندگی هزینه ندا در طول ماه‌ها'}</div>
       <div style={{ width: '100%', height: 180 }}>
         <ResponsiveContainer>
           <BarChart data={data} margin={{ top: 4, right: 4, left: 4, bottom: 4 }}>
