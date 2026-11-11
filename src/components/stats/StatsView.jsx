@@ -16,12 +16,13 @@ export default function StatsView({
   statsTab, setStatsTab, statsYear, setStatsYear, yearOptions,
   statsMonth, setStatsMonth, monthOptions, statsTotal, statsYearly, statsMonthly,
   dailyChartData, dailyIncomeChartData, nedaBreakdown, nedaGrandTotal,
-  statsMonthExpenseTx, statsMonthIncomeTx, vpnNewIncomeTx, vpnNewCostTx,
+  statsMonthExpenseTx, statsMonthIncomeTx, vpnNewIncomeTx, vpnNewCostTx, aloMarketMonths,
   statsVisibleExpense, setStatsVisibleExpense, statsVisibleIncome, setStatsVisibleIncome,
   saving, confirmDeleteId, setConfirmDeleteId, onEdit, onDelete, runningBalanceByTxId,
 }) {
   const statsShown = statsTab === 'total' ? statsTotal : statsTab === 'yearly' ? statsYearly : statsTab === 'monthly' ? statsMonthly : null;
   const vpnNewGross = vpnNewIncomeTx.reduce((s, r) => s + (r.a || 0), 0);
+  const aloMarketTotal = aloMarketMonths.reduce((s, g) => s + g.total, 0);
   const vpnNewCost = vpnNewCostTx.reduce((s, r) => s + (r.a || 0), 0);
 
   return (
@@ -32,6 +33,7 @@ export default function StatsView({
         <button onClick={() => setStatsTab('monthly')} style={{ ...subTabStyle(statsTab === 'monthly'), flex: 1 }}>ماهانه</button>
         <button onClick={() => setStatsTab('neda')} style={{ ...subTabStyle(statsTab === 'neda'), flex: 1 }}>ندا</button>
         <button onClick={() => setStatsTab('vpnNew')} style={{ ...subTabStyle(statsTab === 'vpnNew'), flex: 1 }}>وی‌پی‌ان نیو</button>
+        <button onClick={() => setStatsTab('aloMarket')} style={{ ...subTabStyle(statsTab === 'aloMarket'), flex: 1 }}>الومارکت</button>
       </div>
 
       {statsTab === 'yearly' && (
@@ -110,6 +112,30 @@ export default function StatsView({
               confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId} onEdit={onEdit} onDelete={onDelete}
             />
           </div>
+        </div>
+      )}
+
+      {statsTab === 'aloMarket' && (
+        <div>
+          <div style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14, marginBottom: 14, textAlign: 'center' }}>
+            <div style={{ fontSize: 12, color: COLORS.inkLight, marginBottom: 4 }}>مجموع کل هزینه‌های الومارکت</div>
+            <div className="tabular" style={{ fontSize: 22, fontWeight: 800, color: COLORS.expense }}><Amount value={aloMarketTotal} /></div>
+          </div>
+          {aloMarketMonths.length === 0 && (
+            <div style={{ padding: 30, textAlign: 'center', color: COLORS.inkLight, fontSize: 13, background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12 }}>هزینه‌ای با عنوان «الومارکت» ثبت نشده.</div>
+          )}
+          {aloMarketMonths.map((g) => (
+            <div key={g.month} style={{ marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: COLORS.cover }}>{g.month}</div>
+                <div className="tabular" style={{ fontSize: 13, fontWeight: 700, color: COLORS.expense }}><Amount value={g.total} /></div>
+              </div>
+              <TransactionList
+                type="e" monthLabel={g.month} rows={g.rows} visibleCount={Infinity} onShowMore={() => {}} saving={saving}
+                confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId} onEdit={onEdit} onDelete={onDelete}
+              />
+            </div>
+          ))}
         </div>
       )}
     </div>

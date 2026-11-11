@@ -149,6 +149,11 @@ export function isVpnPartnerTitle(title) {
   const t = (title || '').trim();
   return t === 'امیر' || t === 'وحید';
 }
+// «الومارکت» anywhere in the title — spacing, half-space (ZWNJ) and آ/ا
+// are ignored, so «آلومارکت»، «الو مارکت» and «خرید الومارکت» all count.
+export function isAloMarketTitle(title) {
+  return (title || '').replace(/[\s\u200c]/g, '').replace(/آ/g, 'ا').indexOf('الومارکت') > -1;
+}
 export function isVpnNewExpenseTitle(title) { return (title || '').trim() === 'vpn new'; }
 // Titles the user's own spreadsheet formula excludes from «کل هزینه»:
 // جابجایی (internal transfer), امیر/وحید (vpn resale partner payout),

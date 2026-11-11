@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { COLORS, ACCOUNTS } from './lib/constants';
-import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, isVpnNewExpenseTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM, todayLabel, todayDateShort } from './lib/format';
+import { toEnglishDigits, parseMoneyShorthand, monthInfo, uid, isExcludedExpenseTitle, isVpnNewExpenseTitle, isAloMarketTitle, toFaDigits, jalaliToMonthLabel, advanceMonthLabel, nowHM, todayLabel, todayDateShort } from './lib/format';
 import { todayDay, todayJalali, tomorrowJalali } from './lib/jalali';
 import { TX_KEY, BAL_KEY, MONTH_KEY, DEBTS_KEY, INSTALLMENTS_KEY, storageGet, storageSet } from './lib/storage';
 import { computeStatsRows } from './lib/stats';
@@ -186,6 +186,20 @@ export default function App() {
   // hezar-toman) both stick out at a glance instead of just showing up as
   // one suspicious net number.
   const vpnNewIncomeTx = useMemo(() => tx.filter((r) => r.t === 'i' && r.cat === 'vpnNew').sort((a, b) => b.id - a.id), [tx]);
+  // Every «الومارکت» expense across all months, grouped newest month first
+  // (and newest day first inside a month) for the الومارکت stats tab.
+  const aloMarketMonths = useMemo(() => {
+    const byMonth = new Map();
+    tx.filter((r) => r.t === 'e' && isAloMarketTitle(r.ti)).forEach((r) => {
+      if (!byMonth.has(r.m)) byMonth.set(r.m, { month: r.m, sortKey: monthInfo(r.m).sortKey, total: 0, rows: [] });
+      const g = byMonth.get(r.m);
+      g.total += r.a || 0;
+      g.rows.push(r);
+    });
+    const months = Array.from(byMonth.values()).sort((a, b) => (a.sortKey < b.sortKey ? 1 : -1));
+    months.forEach((g) => g.rows.sort((a, b) => ((b.dt || 0) - (a.dt || 0)) || (b.id - a.id)));
+    return months;
+  }, [tx]);
   const vpnNewCostTx = useMemo(() => tx.filter((r) => r.t === 'e' && isVpnNewExpenseTitle(r.ti)).sort((a, b) => b.id - a.id), [tx]);
 
   const latestBalances = useMemo(() => {
@@ -607,7 +621,7 @@ export default function App() {
             dailyChartData={dailyChartData} dailyIncomeChartData={dailyIncomeChartData}
             nedaBreakdown={nedaBreakdown} nedaGrandTotal={nedaGrandTotal}
             statsMonthExpenseTx={statsMonthExpenseTx} statsMonthIncomeTx={statsMonthIncomeTx}
-            vpnNewIncomeTx={vpnNewIncomeTx} vpnNewCostTx={vpnNewCostTx}
+            vpnNewIncomeTx={vpnNewIncomeTx} vpnNewCostTx={vpnNewCostTx} aloMarketMonths={aloMarketMonths}
             statsVisibleExpense={statsVisibleExpense} setStatsVisibleExpense={setStatsVisibleExpense}
             statsVisibleIncome={statsVisibleIncome} setStatsVisibleIncome={setStatsVisibleIncome}
             saving={saving} confirmDeleteId={confirmDeleteId} setConfirmDeleteId={setConfirmDeleteId}
