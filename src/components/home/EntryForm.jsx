@@ -43,8 +43,8 @@ export default function EntryForm({ form, setForm, formError, editingId, submitF
       <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
         <div style={{ flex: 2 }}>
           <FieldLabel>مبلغ</FieldLabel>
-          <AmountInput autoFocus value={form.a} onChange={(e) => setForm((f) => ({ ...f, a: e.target.value }))} />
-          <AmountPreview value={form.a} />
+          <AmountInput autoFocus value={form.a} account={form.acc} onChange={(e) => setForm((f) => ({ ...f, a: e.target.value }))} />
+          <AmountPreview value={form.a} account={form.acc} />
         </div>
         <div style={{ flex: 1 }}>
           <FieldLabel>روز</FieldLabel>

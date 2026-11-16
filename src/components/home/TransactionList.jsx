@@ -39,7 +39,7 @@ function TxRow({ r, onEdit, onDelete, confirmDeleteId, setConfirmDeleteId, inden
         )}
       </div>
       <div className="tabular" style={{ fontWeight: 700, fontSize: 13, color: isExpense ? COLORS.expense : COLORS.income, whiteSpace: 'nowrap' }}>
-        <Amount value={r.a} sign={isExpense ? '−' : '+'} />
+        <Amount value={r.a} sign={isExpense ? '−' : '+'} account={r.acc} />
       </div>
       {confirmDeleteId === r.id ? (
         <div style={{ display: 'flex', gap: 4 }}>

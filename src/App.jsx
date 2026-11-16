@@ -326,7 +326,8 @@ export default function App() {
   function submitForm(e) {
     e.preventDefault();
     if (!form.acc) { setFormError('حساب را انتخاب کنید.'); return; }
-    const amt = parseMoneyShorthand(form.a);
+    // دلار is a plain dollar count (may have cents), not hezar-toman — no X/Y shorthand.
+    const amt = form.acc === 'دلار' ? parseFloat(toEnglishDigits(String(form.a).trim())) : parseMoneyShorthand(form.a);
     if (isNaN(amt) || amt <= 0) { setFormError('مبلغ را درست وارد کنید.'); return; }
     const dtVal = form.dt ? parseInt(toEnglishDigits(String(form.dt)), 10) : null;
     const base = { acc: form.acc, a: amt, m: currentMonth, dt: (dtVal && !isNaN(dtVal)) ? dtVal : null, transfer: form.transfer, loan: form.loan };

@@ -116,7 +116,7 @@ export default function NedaBreakdown({ nedaBreakdown, nedaGrandTotal }) {
                             <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', borderTop: `1px solid ${COLORS.line}` }}>
                               <div style={{ flex: 1, fontSize: 12.5 }}>{r.ti || 'بدون عنوان'}</div>
                               <div style={{ fontSize: 11, color: COLORS.inkLight }}>{ACCOUNT_LABELS[r.acc] || r.acc}</div>
-                              <div className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.expense }}><Amount value={r.a} /></div>
+                              <div className="tabular" style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.expense }}><Amount value={r.a} account={r.acc} /></div>
                             </div>
                           ))}
                         </div>

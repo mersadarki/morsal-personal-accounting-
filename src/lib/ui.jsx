@@ -1,5 +1,5 @@
 import { COLORS } from './constants';
-import { describeAmount, fmt, fmtUnit, UNIT_TAG } from './format';
+import { describeAmount, fmt, fmtUnit, UNIT_TAG, toEnglishDigits, toFaDigits } from './format';
 
 export const fontStyle = { fontFamily: "'Vazirmatn', sans-serif" };
 export const displayStyle = { fontFamily: "'Lalezar', cursive" };
@@ -21,7 +21,14 @@ export function FieldLabel({ children }) {
 
 // Live confirmation shown under an amount field so it's never ambiguous
 // what a plain number vs an "X/Y" shorthand entry actually recorded.
-export function AmountPreview({ value }) {
+// `account` 'دلار': the typed number is dollars, so echo it back as dollars
+// instead of spelling it out as toman.
+export function AmountPreview({ value, account }) {
+  if (account === 'دلار') {
+    const n = parseFloat(toEnglishDigits(String(value || '').trim()));
+    if (isNaN(n) || n === 0) return null;
+    return <div style={{ fontSize: 11, color: COLORS.brassDark, marginTop: 3 }}>= {toFaDigits(n)} دلار</div>;
+  }
   const text = describeAmount(value);
   if (!text) return null;
   return <div style={{ fontSize: 11, color: COLORS.brassDark, marginTop: 3 }}>= {text}</div>;
@@ -56,7 +63,7 @@ export function Amount({ value, sign, account }) {
 
 // Amount input with the unit tag baked in as an inline suffix inside the
 // field itself, instead of spelling it out in the field label.
-export function AmountInput({ value, onChange, autoFocus, style }) {
+export function AmountInput({ value, onChange, autoFocus, style, account }) {
   return (
     <div style={{ position: 'relative' }}>
       <input
@@ -67,7 +74,7 @@ export function AmountInput({ value, onChange, autoFocus, style }) {
         style={{ ...inputStyle, width: '100%', paddingLeft: 46, ...style }}
       />
       <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', fontSize: 11.5, fontWeight: 600, color: COLORS.inkLight, pointerEvents: 'none' }}>
-        {UNIT_TAG}
+        {account === 'دلار' ? 'دلار' : UNIT_TAG}
       </span>
     </div>
   );
